@@ -1,6 +1,13 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <ItemGroup>
+    <PackageReference Include="Xml2Doc.MSBuild" Version="1.4.0-preview.80-g111a6ac">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\Yaml2Doc.Core\Yaml2Doc.Core.csproj" />
     <ProjectReference Include="..\Yaml2Doc.Markdown\Yaml2Doc.Markdown.csproj" />
   </ItemGroup>
