@@ -33,8 +33,7 @@
     <Xml2Doc_ReportPath>$(MSBuildProjectDirectory)\docs\yaml2doc.core-report.json</Xml2Doc_ReportPath>
   </PropertyGroup>
 
-  <Target Name="Xml2Doc_WriteFingerprint"
-        DependsOnTargets="Xml2Doc_ComputeFingerprint" />
+  <Target Name="Xml2Doc_WriteFingerprint" DependsOnTargets="Xml2Doc_ComputeFingerprint" />
 
   <ItemGroup>
     <PackageReference Include="Xml2Doc.MSBuild" Version="1.4.0-preview.80-g111a6ac">
