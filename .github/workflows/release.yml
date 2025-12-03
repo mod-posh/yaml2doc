@@ -128,12 +128,43 @@ jobs:
             exit 1
           fi
         env:
-          PATH: ~/.dotnet/tools:$PATH
+          PATH: ~/.dotnet/tools:$PATH      
+      
+      - name: Generate Documentation
+        shell: pwsh
+        run: |
+          # Ensure the dotnet tools path (for xml2doc) is available
+          $env:PATH = "$HOME/.dotnet/tools:" + $env:PATH
+
+          $projects = @(
+            "Yaml2Doc.Core",
+            "Yaml2Doc.Markdown",
+            "Yaml2Doc.Cli"
+          )
+
+          foreach ($proj in $projects) {
+            $xmlPattern = "$proj.xml"
+
+            # Look for the XML doc under bin/Release of that project
+            $xmlDoc = Get-ChildItem -Path "./src/$proj/bin/Release" -Recurse -Filter $xmlPattern -File -ErrorAction SilentlyContinue |
+                      Select-Object -First 1
+
+            if (-not $xmlDoc) {
+              Write-Error "XML documentation file '$xmlPattern' not found for project $proj."
+              exit 1
+            }
+
+            $outDir = "Docs/$proj"
+            New-Item -ItemType Directory -Path $outDir -Force | Out-Null
+
+            Write-Host "Generating docs for $proj from $($xmlDoc.FullName) into $outDir"
+            xml2doc --xml "$($xmlDoc.FullName)" --out "$outDir"
+          }
 
       - name: Run markdownlint-cli2-action
         uses: DavidAnson/markdownlint-cli2-action@v16
         with:
-          globs: '**/*.md'
+          globs: 'Docs/**/*.md'
           fix: true
 
       - name: Commit Documentation Changes
