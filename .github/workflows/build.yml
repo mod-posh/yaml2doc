@@ -8,17 +8,71 @@ on:
 jobs:
   build_and_pack:
     runs-on: windows-latest
+
     steps:
       - uses: actions/checkout@v4
+
       - name: Setup .NET
         uses: actions/setup-dotnet@v4
         with:
           dotnet-version: ${{ vars.DOTNET_VERSION }}
-      - name: Restore dependencies
-        run: dotnet restore ${{ github.workspace }}/${{ vars.PROJECT_NAME }}/${{ vars.PROJECT_NAME }}.sln
+
+      - name: Get Project Version
+        id: get_version
+        uses: mod-posh/GetProjectVersion@main
+        with:
+          Filename: 'Directory.Build.props'
+          verbose: "verbose"
+
+      - name: Compose preview version parts
+        shell: pwsh
+        run: |
+          $sha7   = "${env:GITHUB_SHA}".Substring(0,7)
+          $prefix = "${{ steps.get_version.outputs.version }}"
+          if ([string]::IsNullOrWhiteSpace($prefix)) { $prefix = $env:VERSION }
+          if ([string]::IsNullOrWhiteSpace($prefix)) { throw "Could not resolve VersionPrefix" }
+
+          "VERSION_PREFIX=$prefix"                                  >> $env:GITHUB_ENV
+          "VERSION_SUFFIX=preview.${env:GITHUB_RUN_NUMBER}-g$sha7" >> $env:GITHUB_ENV
+
       - name: Clean
-        run: dotnet clean ${{ github.workspace }}/${{ vars.PROJECT_NAME }}/${{ vars.PROJECT_NAME }}.sln --configuration Release
-      - name: Build
-        run: dotnet build ${{ github.workspace }}/${{ vars.PROJECT_NAME }}/${{ vars.PROJECT_NAME }}.sln --configuration Release --no-restore
-      - name: Package
-        run: dotnet pack ${{ github.workspace }}/${{ vars.PROJECT_NAME }}/${{ vars.PROJECT_NAME }}.sln --configuration Release --output nupkgs
+        run: dotnet clean Yaml2Doc.sln --configuration Release
+
+      - name: Build solution
+        run: dotnet build Yaml2Doc.sln --configuration Release --no-restore
+
+      - name: Pack projects individually
+        shell: pwsh
+        run: |
+          $commonPackArgs = @(
+            "--configuration", "Release",
+            "--output", "./publish",
+            "--no-build",
+            "/m:1",
+            "-p:UseSharedCompilation=false",
+            "-p:ContinuousIntegrationBuild=true",
+            "-p:PackageVersion=${{ env.VERSION_PREFIX }}-${{ env.VERSION_SUFFIX }}",
+            "-p:RepositoryCommit=${{ github.sha }}",
+            "-p:RepositoryBranch=${{ github.ref_name }}"
+          )
+
+          dotnet pack ./src/Yaml2Doc.Core/Yaml2Doc.Core.csproj      $commonPackArgs
+          dotnet pack ./src/Yaml2Doc.Markdown/Yaml2Doc.Markdown.csproj  $commonPackArgs
+          dotnet pack ./src/Yaml2Doc.Cli/Yaml2Doc.Cli.csproj        $commonPackArgs
+
+          Get-ChildItem -Path ./publish | ForEach-Object {
+            Write-Host "Packaged: $($_.FullName)"
+          }
+
+      - name: Push to NuGet
+        env:
+          NUGET_API_KEY: ${{ secrets.NUGET_API_KEY }}
+        shell: pwsh
+        run: |
+          foreach ($package in Get-ChildItem -Path "${{ github.workspace }}\publish" -Filter '*.nupkg') {
+            Write-Host "Pushing package: $($package.FullName)"
+            dotnet nuget push $package.FullName `
+              --api-key $env:NUGET_API_KEY `
+              --source https://api.nuget.org/v3/index.json `
+              --skip-duplicate
+          }

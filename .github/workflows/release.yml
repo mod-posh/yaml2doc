@@ -49,8 +49,8 @@ jobs:
           project_name: "${{ vars.PROJECT_NAME }}"
           verbose: true
 
-      - name: Install XMLDocMD Tool
-        run: dotnet tool install --global xmldocmd
+      - name: Install Xml2Doc CLI (preview)
+        run: dotnet tool install --global Xml2Doc.Cli --version 1.4.0-preview.80-g111a6ac
 
       - name: Build Project
         run: dotnet build ${{ vars.PROJECT_NAME }}/${{ vars.PROJECT_NAME }}.csproj --configuration Release
@@ -84,12 +84,20 @@ jobs:
           # Copy everything from the located Release folder into ./publish/
           Copy-Item -Path "$releaseDir\*" -Destination "./publish/" -Recurse -Force
 
-
       - name: Generate Documentation
         run: |
-          xmldocmd ./publish/${{ vars.PROJECT_NAME }}.dll Docs --visibility private --clean --namespace ${{ vars.PROJECT_NAMESPACE }} --namespace-pages
+          xmlDocFile="./publish/${{ vars.PROJECT_NAME }}.xml"
+
+          if [ -f "$xmlDocFile" ]; then
+            echo "Generating docs from: $xmlDocFile"
+            xml2doc --xml "$xmlDocFile" --out Docs
+          else
+            echo "Error: XML documentation file not found at $xmlDocFile!"
+            ls -la ./publish || echo "No publish directory?"
+            exit 1
+          fi
         env:
-          PATH: ${{ github.runner.tool_cache }}/.dotnet/tools:$PATH:~/.dotnet/tools
+          PATH: ~/.dotnet/tools:$PATH
 
       - name: Run markdownlint-cli2-action
         uses: DavidAnson/markdownlint-cli2-action@v16
@@ -107,4 +115,3 @@ jobs:
           git commit -m "Update documentation for release v${{ env.VERSION }}"
           git push origin ${{ github.ref_name }}
         if: success()
-        
