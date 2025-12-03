@@ -70,10 +70,7 @@ namespace Yaml2Doc.Core.Dialects
                 if (forced is null)
                     throw new InvalidOperationException($"No dialect with id '{forcedId}' is registered.");
 
-                if (!forced.CanHandle(context))
-                    throw new InvalidOperationException(
-                        $"Dialect '{forcedId}' is registered but cannot handle this document.");
-
+                // Trust the caller: if they force a dialect, use it even if CanHandle(...) would say "no".
                 return forced;
             }
 
@@ -105,17 +102,29 @@ namespace Yaml2Doc.Core.Dialects
         }
 
         /// <summary>
-        /// Creates the default registry for v1 containing only the <see cref="StandardYamlDialect"/>.
+        /// Creates the default registry for v1.1 containing the built-in YAML dialects.
         /// </summary>
+        /// <remarks>
+        /// Dialects are registered in order of specificity so that more specialized dialects
+        /// (e.g., <see cref="GitHubActionsDialect"/>) are considered before the generic <see cref="StandardYamlDialect"/>.
+        /// </remarks>
         /// <returns>
-        /// A <see cref="Yaml2DocRegistry"/> preconfigured with the standard dialect.
+        /// A <see cref="Yaml2DocRegistry"/> preconfigured with the built-in dialects.
         /// </returns>
         public static Yaml2DocRegistry CreateDefault()
         {
             var loader = new YamlLoader();
+
+            var githubActions = new GitHubActionsDialect(loader);
             var standard = new StandardYamlDialect(loader);
 
-            return new Yaml2DocRegistry(new[] { standard });
+            return new Yaml2DocRegistry(new IYamlDialect[]
+            {
+                // More specific first:
+                githubActions,
+                // Generic catch-all:
+                standard
+            });
         }
     }
 }

@@ -188,9 +188,7 @@ namespace Yaml2Doc.Cli
                     return 2;
                 }
 
-                var loader = new YamlLoader();
-                var standardDialect = new StandardYamlDialect(loader);
-                var registry = new Yaml2DocRegistry(new[] { standardDialect });
+                var registry = Yaml2DocRegistry.CreateDefault();
 
                 var markdownRenderer = new BasicMarkdownRenderer();
                 var engine = new Yaml2DocEngine(registry, markdownRenderer);
@@ -336,7 +334,7 @@ namespace Yaml2Doc.Cli
         }
 
         /// <summary>
-        /// Checks whether any directory segment from <paramref name="baseDirFull"/> to <paramref name="targetFull"/> 
+        /// Checks whether any directory segment from <paramref name="baseDirFull"/> to <paramref name="targetFull"/>
         /// is a reparse point (symlink/junction), which could escape the allowed base directory.
         /// </summary>
         /// <param name="baseDirFull">Base directory full path.</param>

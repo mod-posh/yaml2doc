@@ -370,5 +370,65 @@ namespace Yaml2Doc.Core.Tests.Cli
                 }
             }
         }
+
+        [Fact]
+        public void Run_WithDialectGitHubActions_Succeeds()
+        {
+            // Arrange
+            var inputPath = Path.Combine("golden", "github-actions-golden.yml");
+
+            using var stdout = new StringWriter();
+            using var stderr = new StringWriter();
+
+            // Act
+            var exitCode = Yaml2DocCli.Run(
+                new[]
+                {
+                    "--dialect", "gha",
+                    inputPath
+                },
+                stdout,
+                stderr);
+
+            // Assert
+            Assert.Equal(0, exitCode);
+
+            var markdown = stdout.ToString();
+            Assert.NotEmpty(markdown);
+            Assert.Contains("Root Keys", markdown); // from BasicMarkdownRenderer
+        }
+
+        [Fact]
+        public void Run_WithDialectGitHubActions_Succeeds_AndMatchesGoldenMarkdown()
+        {
+            // Arrange
+            var inputPath = Path.Combine("golden", "github-actions-golden.yml");
+            var goldenPath = Path.Combine("golden", "github-actions-golden.md");
+
+            using var stdout = new StringWriter();
+            using var stderr = new StringWriter();
+
+            // Act
+            var exitCode = Yaml2DocCli.Run(
+                new[]
+                {
+            "--dialect", "gha",
+            inputPath
+                },
+                stdout,
+                stderr);
+
+            // Assert
+            Assert.Equal(0, exitCode);
+
+            var actual = NormalizeNewLines(stdout.ToString());
+            var expected = NormalizeNewLines(File.ReadAllText(goldenPath));
+
+            Assert.Equal(expected, actual);
+        }
+
+        private static string NormalizeNewLines(string text)
+            => text.Replace("\r\n", "\n").Trim();
+
     }
 }

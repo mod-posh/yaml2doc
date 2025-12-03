@@ -1,4 +1,5 @@
 # API Reference
+- [GitHubActionsDialect](Dialects.GitHubActionsDialect.md)
 - [IYamlDialect](Dialects.IYamlDialect.md)
 - [StandardYamlDialect](Dialects.StandardYamlDialect.md)
 - [Yaml2DocRegistry](Dialects.Yaml2DocRegistry.md)

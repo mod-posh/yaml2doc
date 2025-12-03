@@ -19,11 +19,11 @@ Initializes a new instance of the [Yaml2DocRegistry](Dialects.Yaml2DocRegistry.m
 
 <a id="yaml2doc.core.dialects.yaml2docregistry.createdefault"></a>
 ## Method: CreateDefault
-Creates the default registry for v1 containing only the [StandardYamlDialect](Dialects.StandardYamlDialect.md).
+Creates the default registry for v1.1 containing the built-in YAML dialects.
 
 **Returns**
 
-A [Yaml2DocRegistry](Dialects.Yaml2DocRegistry.md) preconfigured with the standard dialect.
+A [Yaml2DocRegistry](Dialects.Yaml2DocRegistry.md) preconfigured with the built-in dialects.
 
 <a id="yaml2doc.core.dialects.yaml2docregistry.dialects"></a>
 ## Property: Dialects
