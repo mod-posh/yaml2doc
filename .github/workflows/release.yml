@@ -18,9 +18,6 @@ jobs:
           Filename: 'Directory.Build.props'
           verbose: "verbose"
 
-      - name: Set VERSION environment variable
-        run: echo "VERSION=${{ steps.get_version.outputs.version }}" >> $GITHUB_ENV
-
       - name: Create Release Notes
         uses: mod-posh/Issue2ReleaseNotes@v0.0.3.3
         with:
