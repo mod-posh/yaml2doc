@@ -290,5 +290,85 @@ namespace Yaml2Doc.Core.Tests.Cli
             Assert.Equal(1, parsed.ErrorExitCode);
             Assert.Contains("--dialect option requires an argument", parsed.ErrorMessage);
         }
+
+        [Fact]
+        public void Run_WithDialectStandard_Succeeds()
+        {
+            // Arrange: create input in the current working directory
+            var baseDir = Directory.GetCurrentDirectory();
+            var inputPath = Path.Combine(baseDir, $"yaml2doc-cli-dialect-standard-{Guid.NewGuid():N}.yml");
+
+            var yaml = "name: test-document\nfoo: bar";
+            File.WriteAllText(inputPath, yaml);
+
+            using var stdout = new StringWriter();
+            using var stderr = new StringWriter();
+
+            var args = new[]
+            {
+            "--dialect", "standard",
+            inputPath
+        };
+
+            try
+            {
+                // Act
+                var exitCode = Yaml2DocCli.Run(args, stdout, stderr);
+                var outputText = stdout.ToString();
+                var errorText = stderr.ToString();
+
+                // Assert
+                Assert.Equal(0, exitCode);
+                Assert.False(string.IsNullOrWhiteSpace(outputText), "Expected some Markdown to be written to stdout.");
+                Assert.True(string.IsNullOrWhiteSpace(errorText), "Did not expect errors when using the standard dialect.");
+            }
+            finally
+            {
+                if (File.Exists(inputPath))
+                {
+                    File.Delete(inputPath);
+                }
+            }
+        }
+
+        [Fact]
+        public void Run_WithNonexistentDialect_FailsWithClearError()
+        {
+            // Arrange: create input in the current working directory
+            var baseDir = Directory.GetCurrentDirectory();
+            var inputPath = Path.Combine(baseDir, $"yaml2doc-cli-dialect-nonexistent-{Guid.NewGuid():N}.yml");
+
+            var yaml = "name: test-document\nfoo: bar";
+            File.WriteAllText(inputPath, yaml);
+
+            using var stdout = new StringWriter();
+            using var stderr = new StringWriter();
+
+            var args = new[]
+            {
+            "--dialect", "nonexistent",
+            inputPath
+        };
+
+            try
+            {
+                // Act
+                var exitCode = Yaml2DocCli.Run(args, stdout, stderr);
+                var errorText = stderr.ToString();
+
+                // Assert
+                // Invalid dialect bubbles as InvalidOperationException from the engine,
+                // caught by the general catch, which returns 3.
+                Assert.Equal(3, exitCode);
+                Assert.Contains("No dialect with id 'nonexistent' is registered.", errorText);
+            }
+            finally
+            {
+                if (File.Exists(inputPath))
+                {
+                    File.Delete(inputPath);
+                }
+            }
+        }
     }
 }
