@@ -148,5 +148,90 @@ namespace Yaml2Doc.Core.Tests.Cli
             Assert.Contains("Usage:", err);
             Assert.Contains("yaml2doc <input.yml>", err);
         }
+
+        [Fact]
+        public void Run_WithInvalidYaml_ReturnsConversionErrorAndWritesParseError()
+        {
+            // Arrange
+            var cwd = Directory.GetCurrentDirectory();
+            var inputPath = Path.Combine(cwd, "invalid-cli.yml");
+
+            // Malformed YAML: missing closing bracket on the flow sequence
+            const string invalidYaml = "root:\n  list: [1, 2, 3\n";
+
+            File.WriteAllText(inputPath, invalidYaml);
+
+            var stdout = new StringWriter();
+            var stderr = new StringWriter();
+
+            try
+            {
+                // Act
+                var exitCode = Yaml2DocCli.Run(
+                    new[] { inputPath },
+                    stdout,
+                    stderr
+                );
+
+                // Assert
+                Assert.Equal(3, exitCode); // conversion / parse error
+
+                var errorText = stderr.ToString();
+                var outputText = stdout.ToString();
+
+                // From Yaml2DocEngine: "Failed to parse YAML: ..."
+                Assert.Contains("Failed to parse YAML", errorText, StringComparison.OrdinalIgnoreCase);
+
+                // Should not have produced any Markdown on stdout
+                Assert.True(string.IsNullOrEmpty(outputText) || !outputText.Contains("#"));
+            }
+            finally
+            {
+                if (File.Exists(inputPath))
+                {
+                    File.Delete(inputPath);
+                }
+            }
+        }
+
+        [Fact]
+        public void Run_WithEmptyYamlFile_ReturnsConversionErrorAndReportsEmptyInput()
+        {
+            // Arrange
+            var cwd = Directory.GetCurrentDirectory();
+            var inputPath = Path.Combine(cwd, "empty-cli.yml");
+
+            // Empty file → engine throws Yaml2DocParseException("YAML input is empty.")
+            File.WriteAllText(inputPath, string.Empty);
+
+            var stdout = new StringWriter();
+            var stderr = new StringWriter();
+
+            try
+            {
+                // Act
+                var exitCode = Yaml2DocCli.Run(
+                    new[] { inputPath },
+                    stdout,
+                    stderr
+                );
+
+                // Assert
+                Assert.Equal(3, exitCode);
+
+                var errorText = stderr.ToString();
+                var outputText = stdout.ToString();
+
+                Assert.Contains("YAML input is empty", errorText, StringComparison.OrdinalIgnoreCase);
+                Assert.True(string.IsNullOrEmpty(outputText) || !outputText.Contains("#"));
+            }
+            finally
+            {
+                if (File.Exists(inputPath))
+                {
+                    File.Delete(inputPath);
+                }
+            }
+        }
     }
 }

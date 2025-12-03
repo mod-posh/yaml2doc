@@ -3,6 +3,7 @@ using System.IO;
 using Yaml2Doc.Core;
 using Yaml2Doc.Core.Dialects;
 using Yaml2Doc.Core.Engine;
+using Yaml2Doc.Core.Models;
 using Yaml2Doc.Core.Parsing;
 using Yaml2Doc.Markdown;
 
@@ -43,6 +44,9 @@ namespace Yaml2Doc.Cli
         /// <item><description><c>3</c> on output path validation failure, conversion error, or I/O failure.</description></item>
         /// </list>
         /// </returns>
+        /// <exception cref="ArgumentNullException">
+        /// Thrown if <paramref name="stdout"/> or <paramref name="stderr"/> is <see langword="null"/>.
+        /// </exception>
         public static int Run(string[] args, TextWriter stdout, TextWriter stderr)
         {
             // Simple manual arg parsing:
@@ -50,6 +54,9 @@ namespace Yaml2Doc.Cli
             string? dialectId = null;
             string? inputPath = null;
             string? outputPath = null;
+
+            if (stdout is null) throw new ArgumentNullException(nameof(stdout));
+            if (stderr is null) throw new ArgumentNullException(nameof(stderr));
 
             if (args.Length == 0)
             {
@@ -156,6 +163,13 @@ namespace Yaml2Doc.Cli
 
                 return 0;
             }
+            catch (Yaml2DocParseException ex)
+            {
+                // Clear message for invalid/malformed YAML.
+                // Engine message is already "Failed to parse YAML: ..."
+                stderr.WriteLine($"Error: {ex.Message}");
+                return 3; // conversion error / invalid YAML
+            }
             catch (Exception ex)
             {
                 stderr.WriteLine("Error: Failed to convert YAML to Markdown.");
@@ -195,6 +209,7 @@ namespace Yaml2Doc.Cli
         /// - Rejects UNC and device paths (e.g., <c>\\server\share</c>).
         /// - Ensures the resolved path remains within <paramref name="baseDirFull"/>.
         /// - Rejects control characters within the path string.
+        /// - Blocks traversal via reparse points (symlinks/junctions).
         /// - For output targets, rejects paths that already exist to avoid clobbering.
         /// </remarks>
         private static string? ResolveAndValidatePath(string path, string baseDirFull, bool allowExistingFile, TextWriter stderr)
@@ -258,6 +273,11 @@ namespace Yaml2Doc.Cli
             }
         }
 
+        /// <summary>
+        /// Determines whether the provided path token refers to a Windows device path (e.g., <c>CON</c>, <c>NUL</c>). 
+        /// </summary>
+        /// <param name="path">A file or directory path.</param>
+        /// <returns><see langword="true"/> if the path resolves to a reserved device name; otherwise, <see langword="false"/>.</returns>
         private static bool IsDevicePath(string path)
         {
             // Windows reserved device names without extension
@@ -274,6 +294,13 @@ namespace Yaml2Doc.Cli
                 || (upper.StartsWith("LPT") && upper.Length == 4 && char.IsDigit(upper[3]));
         }
 
+        /// <summary>
+        /// Checks whether any directory segment from <paramref name="baseDirFull"/> to <paramref name="targetFull"/> 
+        /// is a reparse point (symlink/junction), which could escape the allowed base directory.
+        /// </summary>
+        /// <param name="baseDirFull">Base directory full path.</param>
+        /// <param name="targetFull">Target full path.</param>
+        /// <returns><see langword="true"/> if traversal hits a reparse point; otherwise, <see langword="false"/>.</returns>
         private static bool TraversesReparsePoint(string baseDirFull, string targetFull)
         {
             var baseTrim = baseDirFull.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
@@ -306,6 +333,14 @@ namespace Yaml2Doc.Cli
             return false;
         }
 
+        /// <summary>
+        /// Determines if the given path refers to a filesystem entry marked as a reparse point.
+        /// </summary>
+        /// <param name="path">Full path to test.</param>
+        /// <returns><see langword="true"/> if the path is a reparse point; otherwise, <see langword="false"/>.</returns>
+        /// <remarks>
+        /// On non-Windows platforms, reparse points may not be reported uniformly; failures to read attributes are treated as reparse points.
+        /// </remarks>
         private static bool IsReparsePoint(string path)
         {
             try

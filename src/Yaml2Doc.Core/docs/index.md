@@ -5,6 +5,7 @@
 - [Yaml2DocEngine](Engine.Yaml2DocEngine.md)
 - [IMarkdownRenderer](Interfaces.IMarkdownRenderer.md)
 - [PipelineDocument](Models.PipelineDocument.md)
+- [Yaml2DocParseException](Models.Yaml2DocParseException.md)
 - [YamlDocumentContext](Parsing.YamlDocumentContext.md)
 - [YamlLoader](Parsing.YamlLoader.md)
 - [YamlLoadException](Parsing.YamlLoadException.md)
