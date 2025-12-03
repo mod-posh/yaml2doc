@@ -71,7 +71,7 @@ jobs:
             "/m:1",
             "-p:UseSharedCompilation=false",
             "-p:ContinuousIntegrationBuild=true",
-            "-p:PackageVersion=${{ env.VERSION_PREFIX }}-${{ env.VERSION_SUFFIX }}",
+            "-p:PackageVersion=${{ env.VERSION_PREFIX }}",
             "-p:RepositoryCommit=${{ github.sha }}",
             "-p:RepositoryBranch=${{ github.ref_name }}"
           )
