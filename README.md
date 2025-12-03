@@ -1,128 +1,214 @@
-# C# Project
+| Latest Version | Nuget.org | Issues | Testing | License | Discord |
+|-----------------|-----------------|----------------|----------------|----------------|----------------|
+| [![Latest Version](https://img.shields.io/github/v/tag/mod-posh/Yaml2Doc)](https://github.com/mod-posh/yaml2doc/tags) | [![Nuget.org](https://img.shields.io/nuget/dt/ ?label= )](https://www.nuget.org/packages/ ) | [![GitHub issues](https://img.shields.io/github/issues/mod-posh/Yaml2Doc)](https://github.com/mod-posh/yaml2doc/issues) | [![Merge Test Workflow](https://github.com/mod-posh/yaml2doc/actions/workflows/test.yml/badge.svg)](https://github.com/mod-posh/yaml2doc/actions/workflows/test.yml) | [![GitHub license](https://img.shields.io/github/license/mod-posh/Yaml2Doc)](https://github.com/mod-posh/yaml2doc/blob/master/LICENSE) | [![Discord Server](https://assets-global.website-files.com/6257adef93867e50d84d30e2/636e0b5493894cf60b300587_full_logo_white_RGB.svg)](https://discord.com/channels/1044305359021555793/1044305781627035811) |
+# Yaml2Doc
 
-I have enclosed the files I use to build and deploy C# Projects. GitHub Workflows now manage all the project automation that used to be handled locally by Psake. This document outlines everything you will need to use these for your projects.
+Yaml2Doc is a small command-line tool that converts generic YAML into Markdown.
 
-> [!Caution]
-> Please make sure you modify the.CSPROJ files to suit your project needs; what is defined in this template is
-> common to most of my projects and shouldn't be assumed to be required by yours.
+For v1, the focus is intentionally narrow:
 
-## Workflows
+- Parse **standard YAML** (no CI/CD semantics required).
+- Map it into a neutral in-memory model.
+- Emit a simple, predictable Markdown document.
 
-Most of the content that used to be in the makefile and support JSON files has been moved into Github Action workflows. These workflows handle all the tasks previously handled by the makefile.
+Support for GitHub Actions, Azure DevOps, Jenkins, and other pipeline-specific dialects is explicitly **out of scope for v1** (see [Roadmap](#roadmap--future-work)).
 
-### Repository Secrets/Variables
+---
 
-You will need to define the following variables or secrets; these are referenced by one or more of the workflows listed below.
+## Documentation
 
-**Variables**
+API reference is generated from XML docs on each release.
 
-- DOTNET_VERSION - This is the version of Dotnet your application supports
-- PROJECT_NAME - This is the name of your project
-- PROJECT_NAMESPACE - This is the namespace of your project
+- [Yaml2Doc.Core API Docs](Docs/Yaml2Doc.Core/index.md)
+- [Yaml2Doc.Markdown API Docs](Docs/Yaml2Doc.Markdown/index.md)
+- [Yaml2Doc.Cli API Docs](Docs/Yaml2Doc.Cli/index.md)
 
-**Secrets**
+---
 
-- BLUESKY_API_KEY - This is the Bluesky API key associated with your account
-- BLUESKY_IDENTIFIER - This is your Bluesky identifier "myhandle. bsky.social"
-- DISCORD_WEBHOOK - This is generated in the Discord channel you wish to announce the release
-- GALLERY_API_KEY - The API key for PowerShell Gallery
-- NUGET_API_KEY - The API key for nuget.org
+## What Yaml2Doc v1 does
 
-### Merge Test Workflow
+Yaml2Doc v1 provides:
 
-**Overview**
+- A **Standard YAML dialect**:
+  - Treats the input as generic YAML with a mapping at the root.
+  - Loads content into a neutral `PipelineDocument` model.
+- A **basic Markdown renderer**:
+  - `# <Name>` heading based on the `name` field at the root (if present), otherwise `# YAML Document`.
+  - A `## Root Keys` section listing the top-level keys in the document.
+- A **CLI wrapper** with safe file handling:
+  - Resolves user-supplied paths relative to the current working directory.
+  - Rejects UNC/device paths and paths that resolve outside the working directory.
+  - Blocks traversal through reparse points (symlinks/junctions) inside the working tree.
+  - Prevents accidental overwrites by requiring the output file to **not** already exist.
 
-This workflow is triggered on pull requests targeting the `main` branch. It ensures code quality by running a series of automated tests.
+The goal is to have a solid, tested foundation (loader + dialect + renderer + CLI) before layering on any dialect-specific intelligence.
 
-**Steps**
+---
 
-1. **Checkout Repository** - Fetches the latest code from the repository.
-2. **Setup .NET** - Installs the specified .NET version.
-3. **Restore Dependencies** - Restores project dependencies using `dotnet restore.`
-4. **Build** - Compiles the project in Release configuration.
-5. **Run Tests** - Executes unit tests and generates a TRX test results file.
-6. **Publish Test Results** - Upload the test results as an artifact for review.
+## What Yaml2Doc v1 does *not* do
 
-**Execution Environment**
+Yaml2Doc v1 does **not**:
 
-- Runs on `windows-latest`.
-- Uses GitHub-hosted runners with `.NET` installed.
+- Understand GitHub Actions, Azure DevOps, Jenkins, or any other CI/CD platform semantics.
+- Validate that the YAML is a “valid pipeline” for any particular system.
+- Render platform-specific sections differently based on `kind`, `apiVersion`, `jobs`, `steps`, etc.
+- Act as a linter or schema validator.
 
-**Purpose**
+Right now, *all* YAML is treated as generic “standard” YAML. Dialects and DSL-aware behavior are planned for later milestones.
 
-Performs a full build and test cycle before merging into `main` to ensure that new changes do not introduce errors.
+---
 
-### Build and Package
+## Project structure
 
-**Overview**
+The solution is split into a few projects:
 
-This workflow is triggered on pushes to the `main` branch. It automates the process of building and packaging the project for deployment.
+- `Yaml2Doc.Core`  
+  Core types: YAML loading, `PipelineDocument`, dialect abstraction/registry, and the Standard YAML dialect.
 
-**Steps**
+- `Yaml2Doc.Markdown`  
+  Markdown rendering for `PipelineDocument` (currently the baseline `BasicMarkdownRenderer`).
 
-1. **Checkout Repository** - Fetches the latest code from the repository.
-2. **Setup .NET** - Installs the specified .NET version.
-3. **Restore Dependencies** - Restores project dependencies using `dotnet restore`.
-4. **Clean** - Cleans the project build artifacts.
-5. **Build** - Compiles the project in Release configuration.
-6. **Package** - Creates a NuGet package (`.nupkg`) for distribution.
+- `Yaml2Doc.Cli`  
+  Console application that wires YAML parsing, dialect selection, and Markdown rendering together behind a simple CLI.
 
-**Execution Environment**
+- `Yaml2Doc.Core.Tests`  
+  xUnit tests for the loader, dialect registry, renderer, and CLI behavior.
 
-- Runs on `windows-latest`.
-- Uses GitHub-hosted runners with `.NET` installed.
+---
 
-**Purpose**
+## Prerequisites
 
-Automates the build and packaging process to ensure a clean, reproducible package is created for deployment or distribution.
+- [.NET SDK 9.0](https://dotnet.microsoft.com/) (or later compatible SDK).
 
-### New Release
+You can verify your SDK with:
 
-**Overview**
+```bash
+dotnet --version
+````
 
-This workflow is triggered when a milestone is closed. It automates the creation of a new release, generation of release notes, construction of project documentation, and updating of the repository.
+---
 
-**Steps**
+## Building the project
 
-1. **Checkout Repository** - Fetches the latest code from the repository.
-2. **Get Project Version** - Extract the current project version from the `.csproj` file.
-3. **Create Release Notes** - Generates release notes from closed milestone issues.
-4. **Pull Latest Changes** - Ensures the repository is current with the latest changes.
-5. **Create GitHub Release** - Tags the new release with the extracted version.
-6. **Install PowerShell & XMLDocMD Tool** - Prepares the environment for documentation generation.
-7. **Build & Publish Project** - Compiles and prepares the project for release.
-8DocumentationDocumentation** - Creates API documentation from XML comments.
-9. **Lint Markdown Files** - Ensures all markdown files adhere to best practices.
-10. **Commit Documentation Changes** - Updates and commits new documentation.
-11. **Update README** - Uses a custom action to refresh the project README.
+From the repository root:
 
-**Execution Environment**
+```bash
+dotnet build
+```
 
-- Runs on `ubuntu-latest`.
-- Uses GitHub-hosted runners with installed `.NET`, PowerShell, and markdown linting tools.
+To run the test suite:
 
-**Purpose**
+```bash
+dotnet test
+```
 
-Automates the release process by tagging a new version and ensuring the latest project details are reflected in the repository.
+Both commands should succeed before you rely on the tool.
 
-### Announce New Release
+---
 
-**Overview**
+## Running Yaml2Doc from source
 
-This workflow is triggered after completing the **New Release** workflow. It announces the latest release by retrieving the newest GitHub tag and posting notifications to various platforms.
+The simplest way to run the CLI is via `dotnet run` against the CLI project.
 
-**Steps**
+### Basic usage
 
-1. **Checkout Repository** - Fetches the latest code from the repository.
-2. **Get Latest Tag** - Retrieves GitHub's most recent release tag.
-3. **Post to Bluesky** - Publishes a release announcement to Bluesky.
-4. **Post to Discord** - Sends a release notification to a designated Discord channel.
+```bash
+dotnet run --project src/Yaml2Doc.Cli/Yaml2Doc.Cli.csproj -- <input.yml>
+```
 
-**Execution Environment**
+Notes:
 
-- Runs on `ubuntu-latest`.
-- It uses GitHub-hosted runners with `gh` CLI to retrieve release tags.
+* The `--` separates `dotnet run` arguments from the CLI’s arguments.
+* `<input.yml>` must be a path inside (or below) your current working directory.
+* Paths are resolved safely; attempts to escape the working directory or use unsupported path types will be rejected with a clear error message.
 
-**Purpose**
+The resulting Markdown is written to **standard output**. For example:
 
-Automatically announces new releases to external platforms, ensuring users are informed of the latest version and updates.
+```bash
+dotnet run --project src/Yaml2Doc.Cli/Yaml2Doc.Cli.csproj -- samples/pipelines/standard-golden.yml
+```
+
+…will print Markdown for the sample “golden” YAML to the console.
+
+You can redirect that to a file:
+
+```bash
+dotnet run --project src/Yaml2Doc.Cli/Yaml2Doc.Cli.csproj -- samples/pipelines/standard-golden.yml > standard-golden.out.md
+```
+
+### Writing directly to a file
+
+Yaml2Doc also supports writing output to a specific file.
+
+```bash
+dotnet run --project src/Yaml2Doc.Cli/Yaml2Doc.Cli.csproj -- <input.yml> --output <output.md>
+```
+
+Example:
+
+```bash
+dotnet run --project src/Yaml2Doc.Cli/Yaml2Doc.Cli.csproj -- samples/pipelines/standard-golden.yml --output out/standard-golden.md
+```
+
+Rules:
+
+* `<output.md>` must not already exist. This is to prevent accidental overwrites.
+* The output path is also checked to ensure it stays within the working directory and doesn’t traverse via symlinks/junctions.
+
+If the input file is missing, can’t be read, or fails validation, the CLI returns a non-zero exit code and prints an error message to **standard error**.
+
+---
+
+## Example: From clone to Markdown
+
+1. **Clone the repository**
+
+   ```bash
+   git clone <your-repo-url> yaml2doc
+   cd yaml2doc
+   ```
+
+2. **Build and test**
+
+   ```bash
+   dotnet build
+   dotnet test
+   ```
+
+3. **Run against the standard sample**
+
+   ```bash
+   dotnet run --project src/Yaml2Doc.Cli/Yaml2Doc.Cli.csproj -- samples/pipelines/standard-golden.yml
+   ```
+
+   You should see Markdown output similar to the expected `samples/pipelines/standard-golden.md`.
+
+4. **Write Markdown to a file**
+
+   ```bash
+   mkdir -p out
+   dotnet run --project src/Yaml2Doc.Cli/Yaml2Doc.Cli.csproj -- samples/pipelines/standard-golden.yml --output out/standard-golden.md
+   ```
+
+   Open `out/standard-golden.md` in your editor to confirm the output.
+
+---
+
+## Roadmap & future work
+
+Yaml2Doc is designed with pluggable YAML dialects in mind.
+
+Planned future milestones include:
+
+* **Dialect-aware parsing** for:
+
+  * GitHub Actions (`.github/workflows/*.yml`)
+  * Azure DevOps pipelines (`azure-pipelines.yml`)
+  * Other CI/CD and YAML-based DSLs
+* **Dialect selection** via CLI flags (e.g. `--gha`, `--ado`) and/or auto-detection.
+* **Richer Markdown output**:
+
+  * Sections that understand jobs/steps, triggers, inputs, etc.
+  * Comparison views showing “standard YAML” vs. dialect-specific additions.
+
+For v1, though, the contract is intentionally simple: *standard YAML in, straightforward Markdown out*, with safe file handling and a set of tests to keep behavior predictable.
