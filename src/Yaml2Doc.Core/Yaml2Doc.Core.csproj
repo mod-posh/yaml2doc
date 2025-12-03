@@ -1,42 +1,31 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFrameworks>net9.0</TargetFrameworks>
-    <ImplicitUsings>enable</ImplicitUsings>
-    <Nullable>enable</Nullable>
-    <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <IsPackable>true</IsPackable>
+
     <RootNamespace>Yaml2Doc.Core</RootNamespace>
     <AssemblyName>Yaml2Doc.Core</AssemblyName>
 
-    <VersionPrefix>1.0.0</VersionPrefix>
-    <VersionSuffix>preview</VersionSuffix>
-
     <PackageId>Yaml2Doc.Core</PackageId>
     <Title>Yaml2Doc Core Library</Title>
-    <Authors>Jeffrey S. Patton</Authors>
-    <Company>patton-tech.com</Company>
-    <Description>Core library for parsing pipeline YAML into a neutral model for documentation.</Description>
-    <RepositoryUrl>https://github.com/mod-posh/yaml2doc</RepositoryUrl>
+    <Description>
+      Core library for parsing pipeline YAML into a neutral model for documentation.
+    </Description>
 
-    <PublishRepositoryUrl>true</PublishRepositoryUrl>
-    <IncludeSymbols>true</IncludeSymbols>
-    <SymbolPackageFormat>snupkg</SymbolPackageFormat>
-    <ContinuousIntegrationBuild>true</ContinuousIntegrationBuild>
-    
-    <GenerateDocumentationFile>true</GenerateDocumentationFile>
-    <Xml2Doc_Enabled>true</Xml2Doc_Enabled>
-
+    <!-- Xml2Doc configuration specific to this project -->
     <Xml2Doc_OutputDir>$(MSBuildProjectDirectory)\docs</Xml2Doc_OutputDir>
     <Xml2Doc_RootNamespaceToTrim>Yaml2Doc.Core</Xml2Doc_RootNamespaceToTrim>
     <Xml2Doc_TrimRootNamespaceInFileNames>true</Xml2Doc_TrimRootNamespaceInFileNames>
     <Xml2Doc_ReportPath>$(MSBuildProjectDirectory)\docs\yaml2doc.core-report.json</Xml2Doc_ReportPath>
   </PropertyGroup>
 
-  <Target Name="Xml2Doc_WriteFingerprint" DependsOnTargets="Xml2Doc_ComputeFingerprint" />
+  <!-- Keep the existing Xml2Doc target hook -->
+  <Target Name="Xml2Doc_WriteFingerprint"
+          DependsOnTargets="Xml2Doc_ComputeFingerprint" />
 
   <ItemGroup>
-    <PackageReference Include="Xml2Doc.MSBuild" Version="1.4.0-preview.80-g111a6ac">
+    <PackageReference Include="Xml2Doc.MSBuild"
+                      Version="1.4.0-preview.80-g111a6ac">
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
     <PackageReference Include="YamlDotNet" Version="16.3.0" />

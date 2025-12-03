@@ -1,42 +1,30 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFrameworks>net9.0</TargetFrameworks>
-    <ImplicitUsings>enable</ImplicitUsings>
-    <Nullable>enable</Nullable>
-    <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <IsPackable>true</IsPackable>
+
     <RootNamespace>Yaml2Doc.Markdown</RootNamespace>
     <AssemblyName>Yaml2Doc.Markdown</AssemblyName>
 
-    <VersionPrefix>1.0.0</VersionPrefix>
-    <VersionSuffix>preview</VersionSuffix>
-
     <PackageId>Yaml2Doc.Markdown</PackageId>
-    <Title>Yaml2Doc Markdoown Library</Title>
-    <Authors>Jeffrey S. Patton</Authors>
-    <Company>patton-tech.com</Company>
-    <Description>Renderer library that converts the neutral pipeline model into human-friendly Markdown documentation.</Description>
-    <RepositoryUrl>https://github.com/mod-posh/yaml2doc</RepositoryUrl>
+    <Title>Yaml2Doc Markdown Library</Title>
+    <Description>
+      Renderer library that converts the neutral pipeline model into human-friendly Markdown documentation.
+    </Description>
 
-    <PublishRepositoryUrl>true</PublishRepositoryUrl>
-    <IncludeSymbols>true</IncludeSymbols>
-    <SymbolPackageFormat>snupkg</SymbolPackageFormat>
-    <ContinuousIntegrationBuild>true</ContinuousIntegrationBuild>
-
-    <GenerateDocumentationFile>true</GenerateDocumentationFile>
-    <Xml2Doc_Enabled>true</Xml2Doc_Enabled>
-
+    <!-- Xml2Doc configuration specific to this project -->
     <Xml2Doc_OutputDir>$(MSBuildProjectDirectory)\docs</Xml2Doc_OutputDir>
     <Xml2Doc_RootNamespaceToTrim>Yaml2Doc.Markdown</Xml2Doc_RootNamespaceToTrim>
     <Xml2Doc_TrimRootNamespaceInFileNames>true</Xml2Doc_TrimRootNamespaceInFileNames>
     <Xml2Doc_ReportPath>$(MSBuildProjectDirectory)\docs\Yaml2Doc.Markdown-report.json</Xml2Doc_ReportPath>
   </PropertyGroup>
 
-  <Target Name="Xml2Doc_WriteFingerprint" DependsOnTargets="Xml2Doc_ComputeFingerprint" />
+  <Target Name="Xml2Doc_WriteFingerprint"
+          DependsOnTargets="Xml2Doc_ComputeFingerprint" />
 
   <ItemGroup>
-    <PackageReference Include="Xml2Doc.MSBuild" Version="1.4.0-preview.80-g111a6ac">
+    <PackageReference Include="Xml2Doc.MSBuild"
+                      Version="1.4.0-preview.80-g111a6ac">
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
   </ItemGroup>

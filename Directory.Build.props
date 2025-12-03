@@ -1,0 +1,41 @@
+<Project>
+  <!-- Shared metadata and build defaults for all Yaml2Doc projects -->
+  <PropertyGroup>
+    <!-- Common metadata -->
+    <Company>mod-posh</Company>
+    <Authors>Jeffrey S. Patton</Authors>
+    <RepositoryUrl>https://github.com/mod-posh/yaml2doc</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+
+    <!-- Version: shared across packages (can override per project if needed) -->
+    <VersionPrefix>1.0.0</VersionPrefix>
+    <VersionSuffix>preview</VersionSuffix>
+
+    <!-- Build defaults -->
+    <TargetFramework>net9.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <PlatformTarget>AnyCPU</PlatformTarget>
+
+    <!-- CI / packaging defaults (safe even for non-packable projects) -->
+    <PublishRepositoryUrl>true</PublishRepositoryUrl>
+    <IncludeSymbols>true</IncludeSymbols>
+    <SymbolPackageFormat>snupkg</SymbolPackageFormat>
+    <ContinuousIntegrationBuild>true</ContinuousIntegrationBuild>
+  </PropertyGroup>
+
+  <!-- Only for packable projects (libraries / CLI), not test projects -->
+  <PropertyGroup Condition="'$(IsPackable)' == '' Or '$(IsPackable)' == 'true'">
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+
+    <!-- Default Xml2Doc integration can be overridden per project -->
+    <Xml2Doc_Enabled>true</Xml2Doc_Enabled>
+  </PropertyGroup>
+
+  <!-- SourceLink for everything -->
+  <ItemGroup>
+    <PackageReference Include="Microsoft.SourceLink.GitHub"
+                      Version="8.0.0"
+                      PrivateAssets="All" />
+  </ItemGroup>
+</Project>
