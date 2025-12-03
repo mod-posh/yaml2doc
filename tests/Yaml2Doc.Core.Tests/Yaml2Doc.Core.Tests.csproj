@@ -16,6 +16,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\src\Yaml2Doc.Core\Yaml2Doc.Core.csproj" />
+    <ProjectReference Include="..\..\src\Yaml2Doc.Markdown\Yaml2Doc.Markdown.csproj" />
   </ItemGroup>
 
   <ItemGroup>

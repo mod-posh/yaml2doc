@@ -16,7 +16,7 @@
     <Title>Yaml2Doc Core Library</Title>
     <Authors>Jeffrey S. Patton</Authors>
     <Company>patton-tech.com</Company>
-    <Description>Core library for parsing pipeline YAML into a neutral model for documentation.l</Description>
+    <Description>Core library for parsing pipeline YAML into a neutral model for documentation.</Description>
     <RepositoryUrl>https://github.com/mod-posh/yaml2doc</RepositoryUrl>
 
     <PublishRepositoryUrl>true</PublishRepositoryUrl>
