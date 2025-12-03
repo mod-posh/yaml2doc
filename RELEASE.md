@@ -16,6 +16,19 @@
 > * Plugin-style dialect or DSL architecture beyond what’s needed to support “standard”.
 > * Complex formatting or theming of Markdown.
 
+## FEATURE
+
+* issue-7: Implement Yaml2Doc CLI entrypoint
+* issue-6: Implement Yaml2Doc engine to convert YAML to Markdown
+* issue-5: Implement baseline Markdown renderer for PipelineDocument
+* issue-4: Implement Standard YAML dialect and registry
+* issue-3: Implement Yaml loader to convert YAML text into PipelineDocument
+* issue-2: Define neutral PipelineDocument model for loaded YAML
+
+## TESTS
+
+* issue-9: Add golden snapshot test for standard YAML → Markdown
+
 ## CHORE
 
 * issue-12: Align CI pipelines, NuGet publishing, and shared build props
@@ -25,10 +38,6 @@
 
 * issue-10: Handle errors gracefully in engine and CLI
 
-## TESTS
-
-* issue-9: Add golden snapshot test for standard YAML → Markdown
-
 ## TESTS, FEATURE
 
 * issue-8: Add standard-golden YAML sample and expected Markdown
@@ -36,13 +45,4 @@
 ## DOCUMENTATION
 
 * issue-11: Document v1 usage, scope, and limitations in README
-
-## FEATURE
-
-* issue-7: Implement Yaml2Doc CLI entrypoint
-* issue-6: Implement Yaml2Doc engine to convert YAML to Markdown
-* issue-5: Implement baseline Markdown renderer for PipelineDocument
-* issue-4: Implement Standard YAML dialect and registry
-* issue-3: Implement Yaml loader to convert YAML text into PipelineDocument
-* issue-2: Define neutral PipelineDocument model for loaded YAML
 
