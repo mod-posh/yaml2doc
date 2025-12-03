@@ -21,6 +21,18 @@
   </ItemGroup>
 
   <ItemGroup>
+    <!-- YAML golden input -->
+    <None Include="..\..\samples\pipelines\standard-golden.yml"
+          Link="golden\standard-golden.yml"
+          CopyToOutputDirectory="PreserveNewest" />
+
+    <!-- Markdown golden expected output -->
+    <None Include="..\..\samples\pipelines\standard-golden.md"
+          Link="golden\standard-golden.md"
+          CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+
+  <ItemGroup>
     <Using Include="Xunit" />
   </ItemGroup>
 

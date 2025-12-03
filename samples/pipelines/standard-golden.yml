@@ -1,0 +1,30 @@
+# A small but representative “standard” pipeline-style YAML
+name: Standard Golden Sample
+trigger:
+  branches:
+    include:
+      - main
+      - release/*
+variables:
+  - name: buildConfiguration
+    value: Release
+  - name: dotnetVersion
+    value: "9.0"
+stages:
+  - stage: Build
+    displayName: Build stage
+    jobs:
+      - job: Build
+        steps:
+          - script: dotnet build
+            displayName: Build
+  - stage: Test
+    displayName: Test stage
+    dependsOn: Build
+    jobs:
+      - job: Test
+        steps:
+          - script: dotnet test
+            displayName: Run tests
+pool:
+  vmImage: ubuntu-latest
