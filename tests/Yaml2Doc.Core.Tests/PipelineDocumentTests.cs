@@ -1,6 +1,5 @@
 ﻿using System.Collections.Generic;
 using Xunit;
-using Yaml2Doc.Core;
 using Yaml2Doc.Core.Models;
 
 namespace Yaml2Doc.Core.Tests;

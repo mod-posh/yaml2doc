@@ -15,12 +15,11 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Using Include="Xunit" />
+    <ProjectReference Include="..\..\src\Yaml2Doc.Core\Yaml2Doc.Core.csproj" />
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\src\Yaml2Doc.Core\Yaml2Doc.Core.csproj" />
-    <ProjectReference Include="..\..\src\Yaml2Doc.Markdown\Yaml2Doc.Markdown.csproj" />
+    <Using Include="Xunit" />
   </ItemGroup>
 
 </Project>
