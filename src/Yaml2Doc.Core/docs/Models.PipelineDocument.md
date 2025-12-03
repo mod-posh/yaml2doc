@@ -4,7 +4,7 @@ Represents a neutral, in-memory view of a loaded YAML pipeline document.
 
 **Remarks**
 
-The model is intentionally generic and not tied to any single CI/CD dialect. Top-level keys are stored in a case-insensitive map by default to make common CI configuration usage more convenient.
+The model is generic and not tied to any single CI/CD dialect. Top-level keys are stored in a case-insensitive map to simplify common CI configuration usage. Instances are mutable, but consumers should avoid mutating shared instances across threads.
 
 **Example**
 
@@ -26,6 +26,10 @@ The model is intentionally generic and not tied to any single CI/CD dialect. Top
 <a id="yaml2doc.core.models.pipelinedocument.#ctor"></a>
 ## Method: #ctor
 Initializes a new instance of the [PipelineDocument](Models.PipelineDocument.md) class with a case-insensitive root key map.
+
+<a id="yaml2doc.core.models.pipelinedocument.dialectid"></a>
+## Property: DialectId
+Optional identifier of the dialect that produced this document (e.g., `standard`, `gha`, `ado`).
 
 <a id="yaml2doc.core.models.pipelinedocument.item(string)"></a>
 ## Property: Item(string)

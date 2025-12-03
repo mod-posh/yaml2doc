@@ -4,7 +4,7 @@ Azure DevOps pipelines YAML dialect.
 
 **Remarks**
 
-Detection is heuristic-based and considers typical ADO pipeline structure: - The document root must be a mapping. - Presence of root-level keys such as `trigger`, `pool`, `stages`, `jobs`, or `steps`. Parsing delegates to [YamlLoader](Parsing.YamlLoader.md) to produce a neutral [PipelineDocument](Models.PipelineDocument.md). Implementations should be deterministic and must not mutate inputs.
+Detection is heuristic-based and considers typical ADO pipeline structure: - The document root must be a mapping. - Presence of root-level keys such as `trigger`, `pool`, `stages`, `jobs`, or `steps`. Parsing delegates to [YamlLoader](Parsing.YamlLoader.md) to produce a neutral [PipelineDocument](Models.PipelineDocument.md). The parsed document's [DialectId](Models.PipelineDocument.md#yaml2doc.core.models.pipelinedocument.dialectid) is set to `"ado"`. Implementations should be deterministic and must not mutate inputs.
 
 <a id="yaml2doc.core.dialects.azurepipelinesdialect.#ctor(yaml2doc.core.parsing.yamlloader)"></a>
 ## Method: #ctor(YamlLoader)
@@ -43,7 +43,7 @@ Parses the YAML document into a [PipelineDocument](Models.PipelineDocument.md) u
 
 **Returns**
 
-A populated [PipelineDocument](Models.PipelineDocument.md) representing the input YAML.
+A populated [PipelineDocument](Models.PipelineDocument.md) representing the input YAML, with [DialectId](Models.PipelineDocument.md#yaml2doc.core.models.pipelinedocument.dialectid) set to `"ado"`.
 
 **Exceptions**
 - [ArgumentNullException](System.ArgumentNullException.md) — Thrown when `context` is.

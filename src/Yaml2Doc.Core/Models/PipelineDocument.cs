@@ -10,9 +10,9 @@ namespace Yaml2Doc.Core.Models
     /// Represents a neutral, in-memory view of a loaded YAML pipeline document.
     /// </summary>
     /// <remarks>
-    /// The model is intentionally generic and not tied to any single CI/CD dialect.
-    /// Top-level keys are stored in a case-insensitive map by default to make
-    /// common CI configuration usage more convenient.
+    /// The model is generic and not tied to any single CI/CD dialect.
+    /// Top-level keys are stored in a case-insensitive map to simplify common CI configuration usage.
+    /// Instances are mutable, but consumers should avoid mutating shared instances across threads.
     /// </remarks>
     /// <example>
     /// <code>
@@ -35,6 +35,11 @@ namespace Yaml2Doc.Core.Models
         /// Optional logical name for the document (e.g., derived from a top-level YAML field or filename).
         /// </summary>
         public string? Name { get; set; }
+
+        /// <summary>
+        /// Optional identifier of the dialect that produced this document (e.g., <c>standard</c>, <c>gha</c>, <c>ado</c>).
+        /// </summary>
+        public string? DialectId { get; set; }
 
         /// <summary>
         /// Root map of top-level YAML keys to values.
@@ -61,9 +66,7 @@ namespace Yaml2Doc.Core.Models
         /// Provides convenient access to top-level keys in <see cref="Root"/>.
         /// </summary>
         /// <param name="key">The top-level YAML key to get or set.</param>
-        /// <returns>
-        /// The associated value if present; otherwise, <see langword="null"/>.
-        /// </returns>
+        /// <returns>The associated value if present; otherwise, <see langword="null"/>.</returns>
         /// <remarks>
         /// Getting a missing key returns <see langword="null"/> rather than throwing.
         /// Setting a key adds or replaces the value in the root map.

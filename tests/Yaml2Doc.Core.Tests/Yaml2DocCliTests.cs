@@ -425,7 +425,8 @@ namespace Yaml2Doc.Core.Tests.Cli
             var actual = NormalizeNewLines(stdout.ToString());
             var expected = NormalizeNewLines(File.ReadAllText(goldenPath));
 
-            Assert.Equal(expected, actual);
+            // Golden is the baseline; actual may contain extra dialect-aware sections
+            Assert.StartsWith(expected, actual);
         }
 
         private static string NormalizeNewLines(string text)
@@ -484,8 +485,48 @@ namespace Yaml2Doc.Core.Tests.Cli
             var actual = NormalizeNewLines(stdout.ToString());
             var expected = NormalizeNewLines(File.ReadAllText(goldenPath));
 
-            Assert.Equal(expected, actual);
+            // Again, golden is the baseline prefix; actual includes extra sections
+            Assert.StartsWith(expected, actual);
         }
 
+        [Fact]
+        public void Run_WithStandardGoldenYaml_ProducesSameMarkdownAsGoldenFile()
+        {
+            // Arrange: relative to the test working directory,
+            // assuming both files are in tests\Yaml2Doc.Core.Tests\golden
+            var inputPath = Path.Combine("golden", "standard-golden.yml");
+            var goldenPath = Path.Combine("golden", "standard-golden.md");
+
+            var expectedMarkdown = File.ReadAllText(goldenPath);
+
+            var stdout = new StringWriter(new StringBuilder());
+            var stderr = new StringWriter(new StringBuilder());
+
+            var args = new[]
+            {
+        "--dialect", "standard",
+        inputPath
+    };
+
+            // Act
+            var exitCode = Yaml2DocCli.Run(
+                args,
+                stdout,
+                stderr);
+
+            var actualMarkdown = stdout.ToString();
+
+            // Assert
+            Assert.Equal(0, exitCode);
+
+            static string Normalize(string s) =>
+                s.Replace("\r\n", "\n").Replace('\r', '\n');
+
+            Assert.Equal(
+                Normalize(expectedMarkdown),
+                Normalize(actualMarkdown));
+
+            Assert.True(string.IsNullOrWhiteSpace(stderr.ToString()));
+        }
     }
 }

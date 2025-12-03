@@ -14,6 +14,7 @@ namespace Yaml2Doc.Core.Dialects
     /// - The document root must be a mapping.
     /// - Presence of root-level keys such as <c>trigger</c>, <c>pool</c>, <c>stages</c>, <c>jobs</c>, or <c>steps</c>.
     /// Parsing delegates to <see cref="YamlLoader"/> to produce a neutral <see cref="PipelineDocument"/>.
+    /// The parsed document's <see cref="PipelineDocument.DialectId"/> is set to <c>"ado"</c>.
     /// Implementations should be deterministic and must not mutate inputs.
     /// </remarks>
     public sealed class AzurePipelinesDialect : IYamlDialect
@@ -84,7 +85,10 @@ namespace Yaml2Doc.Core.Dialects
         /// Parses the YAML document into a <see cref="PipelineDocument"/> using the configured loader.
         /// </summary>
         /// <param name="context">The loaded YAML document context to parse. Must not be <see langword="null"/>.</param>
-        /// <returns>A populated <see cref="PipelineDocument"/> representing the input YAML.</returns>
+        /// <returns>
+        /// A populated <see cref="PipelineDocument"/> representing the input YAML, with
+        /// <see cref="PipelineDocument.DialectId"/> set to <c>"ado"</c>.
+        /// </returns>
         /// <exception cref="ArgumentNullException">Thrown when <paramref name="context"/> is <see langword="null"/>.</exception>
         /// <exception cref="YamlLoadException">Thrown when the document cannot be parsed into a valid model.</exception>
         public PipelineDocument Parse(YamlDocumentContext context)
@@ -92,7 +96,9 @@ namespace Yaml2Doc.Core.Dialects
             if (context is null) throw new ArgumentNullException(nameof(context));
 
             // Project into the neutral PipelineDocument, keeping ADO concepts in the Root dictionary.
-            return _loader.Load(context);
+            var document = _loader.Load(context);
+            document.DialectId = Id;
+            return document;
         }
     }
 }

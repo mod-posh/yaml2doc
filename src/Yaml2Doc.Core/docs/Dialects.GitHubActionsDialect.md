@@ -4,7 +4,7 @@ GitHub Actions-specific YAML dialect.
 
 **Remarks**
 
-Detection is heuristic-based and considers typical GitHub Actions workflow structure: - The document root must be a mapping. - Presence of root-level keys `on` and `jobs`. Parsing delegates to [YamlLoader](Parsing.YamlLoader.md) to produce a neutral [PipelineDocument](Models.PipelineDocument.md). Implementations should be deterministic and must not mutate inputs.
+Detection is heuristic-based and considers typical GitHub Actions workflow structure: - The document root must be a mapping. - Presence of root-level keys `on` and `jobs`. Parsing delegates to [YamlLoader](Parsing.YamlLoader.md) to produce a neutral [PipelineDocument](Models.PipelineDocument.md). The parsed document's [DialectId](Models.PipelineDocument.md#yaml2doc.core.models.pipelinedocument.dialectid) is set to `"gha"`. Implementations should be deterministic and must not mutate inputs.
 
 <a id="yaml2doc.core.dialects.githubactionsdialect.#ctor(yaml2doc.core.parsing.yamlloader)"></a>
 ## Method: #ctor(YamlLoader)
@@ -43,7 +43,7 @@ Parses the YAML document into a [PipelineDocument](Models.PipelineDocument.md) u
 
 **Returns**
 
-A populated [PipelineDocument](Models.PipelineDocument.md) representing the input YAML.
+A populated [PipelineDocument](Models.PipelineDocument.md) representing the input YAML, with [DialectId](Models.PipelineDocument.md#yaml2doc.core.models.pipelinedocument.dialectid) set to `"gha"`.
 
 **Exceptions**
 - [ArgumentNullException](System.ArgumentNullException.md) — Thrown when `context` is.
