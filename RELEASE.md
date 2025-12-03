@@ -20,10 +20,13 @@
 
 * issue-10: Handle errors gracefully in engine and CLI
 
-## CHORE
+## TESTS
 
-* issue-12: Align CI pipelines, NuGet publishing, and shared build props
-* issue-1: Create Yaml2Doc solution structure (.NET 9)
+* issue-9: Add golden snapshot test for standard YAML → Markdown
+
+## DOCUMENTATION
+
+* issue-11: Document v1 usage, scope, and limitations in README
 
 ## FEATURE
 
@@ -38,11 +41,8 @@
 
 * issue-8: Add standard-golden YAML sample and expected Markdown
 
-## TESTS
+## CHORE
 
-* issue-9: Add golden snapshot test for standard YAML → Markdown
-
-## DOCUMENTATION
-
-* issue-11: Document v1 usage, scope, and limitations in README
+* issue-12: Align CI pipelines, NuGet publishing, and shared build props
+* issue-1: Create Yaml2Doc solution structure (.NET 9)
 
