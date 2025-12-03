@@ -9,6 +9,8 @@
 *.user
 *.userosscache
 *.sln.docstates
+xml2doc.*
+*-reports.json
 
 # User-specific files (MonoDevelop/Xamarin Studio)
 *.userprefs
@@ -396,3 +398,4 @@ FodyWeavers.xsd
 
 # JetBrains Rider
 *.sln.iml
+/src/Yaml2Doc.Core/docs/yaml2doc.core-report.json
