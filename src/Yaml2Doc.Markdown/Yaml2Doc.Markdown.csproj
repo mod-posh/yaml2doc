@@ -33,4 +33,14 @@
     <ProjectReference Include="..\Yaml2Doc.Core\Yaml2Doc.Core.csproj" />
   </ItemGroup>
 
+  <PropertyGroup>
+    <PackageReadmeFile>README.Markdown.md</PackageReadmeFile>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Include="README.Markdown.md"
+          Pack="true"
+          PackagePath="/" />
+  </ItemGroup>
+
 </Project>

@@ -31,4 +31,14 @@
     <PackageReference Include="YamlDotNet" Version="16.3.0" />
   </ItemGroup>
 
+  <PropertyGroup>
+    <PackageReadmeFile>README.Core.md</PackageReadmeFile>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Include="README.Core.md"
+          Pack="true"
+          PackagePath="/" />
+  </ItemGroup>
+
 </Project>
