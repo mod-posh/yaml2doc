@@ -52,11 +52,37 @@ jobs:
       - name: Install Xml2Doc CLI (preview)
         run: dotnet tool install --global Xml2Doc.Cli --version 1.4.0-preview.80-g111a6ac
 
-      - name: Build Project
-        run: dotnet build ${{ vars.PROJECT_NAME }}/${{ vars.PROJECT_NAME }}.csproj --configuration Release
+      - name: Clean solution
+        run: dotnet clean Yaml2Doc.sln --configuration Release
+      
+      - name: Restore dependencies
+        run: dotnet restore Yaml2Doc.sln
+      
+      - name: Build solution
+        run: dotnet build Yaml2Doc.sln --configuration Release --no-restore
 
-      - name: Pack Project
-        run: dotnet pack ${{ vars.PROJECT_NAME }}/${{ vars.PROJECT_NAME }}.csproj --configuration Release --output ./publish /p:PackageId=${{ vars.PROJECT_ID }}
+      - name: Pack projects individually
+        shell: pwsh
+        run: |
+          $commonPackArgs = @(
+            "--configuration", "Release",
+            "--output", "./publish",
+            "--no-build",
+            "/m:1",
+            "-p:UseSharedCompilation=false",
+            "-p:ContinuousIntegrationBuild=true",
+            "-p:PackageVersion=${{ env.VERSION_PREFIX }}-${{ env.VERSION_SUFFIX }}",
+            "-p:RepositoryCommit=${{ github.sha }}",
+            "-p:RepositoryBranch=${{ github.ref_name }}"
+          )
+
+          dotnet pack ./src/Yaml2Doc.Core/Yaml2Doc.Core.csproj      $commonPackArgs
+          dotnet pack ./src/Yaml2Doc.Markdown/Yaml2Doc.Markdown.csproj  $commonPackArgs
+          dotnet pack ./src/Yaml2Doc.Cli/Yaml2Doc.Cli.csproj        $commonPackArgs
+
+          Get-ChildItem -Path ./publish | ForEach-Object {
+            Write-Host "Packaged: $($_.FullName)"
+          }
 
       - name: Push to NuGet
         run: dotnet nuget push ./publish/*.nupkg --api-key ${{ secrets.NUGET_API_KEY }} --source https://api.nuget.org/v3/index.json --skip-duplicate
