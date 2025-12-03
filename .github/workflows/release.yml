@@ -18,6 +18,9 @@ jobs:
           Filename: 'Directory.Build.props'
           verbose: "verbose"
 
+      - name: Set VERSION environment variable
+        run: echo "VERSION=${{ steps.get_version.outputs.version }}" >> $GITHUB_ENV
+
       - name: Create Release Notes
         uses: mod-posh/Issue2ReleaseNotes@v0.0.3.3
         with:
@@ -64,6 +67,11 @@ jobs:
       - name: Pack projects individually
         shell: pwsh
         run: |
+          $version = $env:VERSION
+          if ([string]::IsNullOrWhiteSpace($version)) {
+            throw "VERSION environment variable is empty; cannot pack."
+          }
+
           $commonPackArgs = @(
             "--configuration", "Release",
             "--output", "./publish",
@@ -71,14 +79,14 @@ jobs:
             "/m:1",
             "-p:UseSharedCompilation=false",
             "-p:ContinuousIntegrationBuild=true",
-            "-p:PackageVersion=${{ steps.get_version.outputs.version }}",
+            "-p:PackageVersion=$version",
             "-p:RepositoryCommit=${{ github.sha }}",
             "-p:RepositoryBranch=${{ github.ref_name }}"
           )
 
-          dotnet pack ./src/Yaml2Doc.Core/Yaml2Doc.Core.csproj      $commonPackArgs
-          dotnet pack ./src/Yaml2Doc.Markdown/Yaml2Doc.Markdown.csproj  $commonPackArgs
-          dotnet pack ./src/Yaml2Doc.Cli/Yaml2Doc.Cli.csproj        $commonPackArgs
+          dotnet pack ./src/Yaml2Doc.Core/Yaml2Doc.Core.csproj         $commonPackArgs
+          dotnet pack ./src/Yaml2Doc.Markdown/Yaml2Doc.Markdown.csproj $commonPackArgs
+          dotnet pack ./src/Yaml2Doc.Cli/Yaml2Doc.Cli.csproj           $commonPackArgs
 
           Get-ChildItem -Path ./publish | ForEach-Object {
             Write-Host "Packaged: $($_.FullName)"
