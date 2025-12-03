@@ -234,4 +234,61 @@ namespace Yaml2Doc.Core.Tests.Cli
             }
         }
     }
+
+    public class Yaml2DocCliDialectTests
+    {
+        [Fact]
+        public void ParseArguments_NoDialectFlag_LeavesDialectNull()
+        {
+            var parsed = Yaml2DocCli.ParseArguments(new[] { "input.yml" });
+
+            Assert.Null(parsed.DialectId);
+            Assert.Equal("input.yml", parsed.InputPath);
+            Assert.Null(parsed.OutputPath);
+            Assert.Null(parsed.ErrorExitCode);
+        }
+
+        [Fact]
+        public void ParseArguments_WithDialectStandard_SetsDialectId()
+        {
+            var parsed = Yaml2DocCli.ParseArguments(new[] { "--dialect", "standard", "input.yml" });
+
+            Assert.Equal("standard", parsed.DialectId);
+            Assert.Equal("input.yml", parsed.InputPath);
+            Assert.Null(parsed.OutputPath);
+            Assert.Null(parsed.ErrorExitCode);
+        }
+
+        [Fact]
+        public void ParseArguments_WithDialectGha_SetsDialectIdToGha()
+        {
+            var parsed = Yaml2DocCli.ParseArguments(new[] { "--dialect", "gha", "workflow.yml" });
+
+            Assert.Equal("gha", parsed.DialectId);
+            Assert.Equal("workflow.yml", parsed.InputPath);
+            Assert.Null(parsed.OutputPath);
+            Assert.Null(parsed.ErrorExitCode);
+        }
+
+        [Fact]
+        public void ParseArguments_WithDialectAdo_SetsDialectIdToAdo()
+        {
+            var parsed = Yaml2DocCli.ParseArguments(new[] { "--dialect", "ado", "azure-pipelines.yml" });
+
+            Assert.Equal("ado", parsed.DialectId);
+            Assert.Equal("azure-pipelines.yml", parsed.InputPath);
+            Assert.Null(parsed.OutputPath);
+            Assert.Null(parsed.ErrorExitCode);
+        }
+
+        [Fact]
+        public void ParseArguments_DialectWithoutValue_ReturnsError()
+        {
+            var parsed = Yaml2DocCli.ParseArguments(new[] { "--dialect" });
+
+            Assert.NotNull(parsed.ErrorExitCode);
+            Assert.Equal(1, parsed.ErrorExitCode);
+            Assert.Contains("--dialect option requires an argument", parsed.ErrorMessage);
+        }
+    }
 }

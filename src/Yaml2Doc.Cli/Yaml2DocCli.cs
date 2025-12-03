@@ -13,55 +13,60 @@ namespace Yaml2Doc.Cli
     /// Provides the command-line entry point logic for converting YAML to Markdown.
     /// </summary>
     /// <remarks>
-    /// The runner performs basic argument parsing and enforces safe file path handling:
-    /// - Resolves user-supplied paths to full paths relative to the current working directory.
-    /// - Rejects UNC and device paths, and paths resolving outside the working directory.
-    /// - Blocks traversal through reparse points (symlinks/junctions) within the working tree.
-    /// - Prevents accidental overwrites by requiring non-existent output targets.
-    /// This type is public to facilitate unit testing of CLI behavior.
+    /// Performs argument parsing and enforces safe file path handling.
+    /// Rejects UNC/device paths, prevents traversal via reparse points, and avoids overwriting output files.
+    /// Public for unit testing CLI behavior.
     /// </remarks>
     public static class Yaml2DocCli
     {
         /// <summary>
-        /// Entry point for the CLI logic, separated from <c>Program</c> to enable unit testing.
+        /// Strongly-typed result of CLI argument parsing.
         /// </summary>
-        /// <param name="args">
-        /// Command-line arguments in the form:
-        /// <list type="bullet">
-        /// <item><description><c>yaml2doc &lt;input.yml&gt;</c></description></item>
-        /// <item><description><c>yaml2doc &lt;input.yml&gt; &lt;output.md&gt;</c></description></item>
-        /// <item><description><c>yaml2doc --dialect &lt;id&gt; &lt;input.yml&gt; [output.md]</c></description></item>
-        /// </list>
-        /// </param>
-        /// <param name="stdout">Destination for normal output (Markdown).</param>
-        /// <param name="stderr">Destination for error output.</param>
+        /// <param name="DialectId">Optional dialect identifier provided via <c>--dialect &lt;id&gt;</c>.</param>
+        /// <param name="InputPath">Input YAML file path as provided on the command line.</param>
+        /// <param name="OutputPath">Optional output Markdown file path; if <see langword="null"/>, output is written to standard output.</param>
+        /// <param name="ErrorExitCode">If parsing fails, the corresponding exit code (e.g., <c>1</c>); otherwise <see langword="null"/>.</param>
+        /// <param name="ErrorMessage">Human-readable error message when parsing fails; otherwise <see langword="null"/>.</param>
+        public sealed record ParsedArguments(
+            string? DialectId,
+            string? InputPath,
+            string? OutputPath,
+            int? ErrorExitCode,
+            string? ErrorMessage
+        );
+
+        /// <summary>
+        /// Parses command-line arguments into dialect, input, and output values without performing filesystem operations.
+        /// </summary>
+        /// <param name="args">Raw command-line arguments.</param>
         /// <returns>
-        /// Process exit code:
-        /// <list type="bullet">
-        /// <item><description><c>0</c> on success.</description></item>
-        /// <item><description><c>1</c> for usage or argument errors.</description></item>
-        /// <item><description><c>2</c> when the input path is invalid or the input file is not found.</description></item>
-        /// <item><description><c>3</c> on output path validation failure, conversion error, or I/O failure.</description></item>
-        /// </list>
+        /// A <see cref="ParsedArguments"/> containing parsed values. On error, <c>ErrorExitCode</c> and <c>ErrorMessage</c>
+        /// indicate the failure reason and recommended exit code.
         /// </returns>
-        /// <exception cref="ArgumentNullException">
-        /// Thrown if <paramref name="stdout"/> or <paramref name="stderr"/> is <see langword="null"/>.
-        /// </exception>
-        public static int Run(string[] args, TextWriter stdout, TextWriter stderr)
+        /// <exception cref="ArgumentNullException">Thrown when <paramref name="args"/> is <see langword="null"/>.</exception>
+        /// <remarks>
+        /// Supported forms:
+        /// - <c>yaml2doc &lt;input.yml&gt;</c>
+        /// - <c>yaml2doc &lt;input.yml&gt; &lt;output.md&gt;</c>
+        /// - <c>yaml2doc --dialect &lt;id&gt; &lt;input.yml&gt; [output.md]</c>
+        /// </remarks>
+        public static ParsedArguments ParseArguments(string[] args)
         {
-            // Simple manual arg parsing:
-            // yaml2doc [--dialect <id>] <input.yml> [output.md]
+            if (args is null) throw new ArgumentNullException(nameof(args));
+
             string? dialectId = null;
             string? inputPath = null;
             string? outputPath = null;
 
-            if (stdout is null) throw new ArgumentNullException(nameof(stdout));
-            if (stderr is null) throw new ArgumentNullException(nameof(stderr));
-
             if (args.Length == 0)
             {
-                PrintUsage(stderr);
-                return 1;
+                return new ParsedArguments(
+                    DialectId: null,
+                    InputPath: null,
+                    OutputPath: null,
+                    ErrorExitCode: 1,
+                    ErrorMessage: "Error: No arguments provided."
+                );
             }
 
             for (var i = 0; i < args.Length; i++)
@@ -72,9 +77,13 @@ namespace Yaml2Doc.Cli
                 {
                     if (i + 1 >= args.Length)
                     {
-                        stderr.WriteLine("Error: --dialect option requires an argument.");
-                        PrintUsage(stderr);
-                        return 1;
+                        return new ParsedArguments(
+                            DialectId: null,
+                            InputPath: null,
+                            OutputPath: null,
+                            ErrorExitCode: 1,
+                            ErrorMessage: "Error: --dialect option requires an argument."
+                        );
                     }
 
                     dialectId = args[++i];
@@ -89,25 +98,77 @@ namespace Yaml2Doc.Cli
                 }
                 else
                 {
-                    stderr.WriteLine("Error: Too many arguments.");
-                    PrintUsage(stderr);
-                    return 1;
+                    return new ParsedArguments(
+                        DialectId: null,
+                        InputPath: null,
+                        OutputPath: null,
+                        ErrorExitCode: 1,
+                        ErrorMessage: "Error: Too many arguments."
+                    );
                 }
             }
 
             if (string.IsNullOrWhiteSpace(inputPath))
             {
-                stderr.WriteLine("Error: Input file path is required.");
-                PrintUsage(stderr);
-                return 1;
+                return new ParsedArguments(
+                    DialectId: null,
+                    InputPath: null,
+                    OutputPath: null,
+                    ErrorExitCode: 1,
+                    ErrorMessage: "Error: Input file path is required."
+                );
             }
+
+            return new ParsedArguments(
+                DialectId: dialectId,
+                InputPath: inputPath,
+                OutputPath: outputPath,
+                ErrorExitCode: null,
+                ErrorMessage: null
+            );
+        }
+
+        /// <summary>
+        /// Executes the CLI: validates paths, converts YAML to Markdown, and writes output.
+        /// </summary>
+        /// <param name="args">Command-line arguments.</param>
+        /// <param name="stdout">Destination for normal output (Markdown).</param>
+        /// <param name="stderr">Destination for error output.</param>
+        /// <returns>
+        /// Exit code: <c>0</c> success; <c>1</c> usage/argument errors;
+        /// <c>2</c> invalid input path or file not found; <c>3</c> output path failure, conversion error, or I/O failure.
+        /// </returns>
+        /// <exception cref="ArgumentNullException">Thrown if <paramref name="stdout"/> or <paramref name="stderr"/> is <see langword="null"/>.</exception>
+        /// <remarks>
+        /// Delegates argument parsing to <see cref="ParseArguments(string[])"/> before path validation, YAML parsing, and rendering.
+        /// </remarks>
+        public static int Run(string[] args, TextWriter stdout, TextWriter stderr)
+        {
+            if (stdout is null) throw new ArgumentNullException(nameof(stdout));
+            if (stderr is null) throw new ArgumentNullException(nameof(stderr));
+
+            args ??= Array.Empty<string>();
+
+            var parsed = ParseArguments(args);
+            if (parsed.ErrorExitCode is not null)
+            {
+                if (!string.IsNullOrEmpty(parsed.ErrorMessage))
+                {
+                    stderr.WriteLine(parsed.ErrorMessage);
+                }
+                PrintUsage(stderr);
+                return parsed.ErrorExitCode.Value;
+            }
+
+            var dialectId = parsed.DialectId;
+            var inputPath = parsed.InputPath!;
+            var outputPath = parsed.OutputPath;
 
             try
             {
                 var baseDir = Directory.GetCurrentDirectory();
                 var baseDirFull = Path.GetFullPath(baseDir);
 
-                // Validate input path and open safely to avoid TOCTOU.
                 var inputFullPath = ResolveAndValidatePath(inputPath, baseDirFull, allowExistingFile: true, stderr);
                 if (inputFullPath is null)
                 {
@@ -127,7 +188,6 @@ namespace Yaml2Doc.Cli
                     return 2;
                 }
 
-                // Wire up core services for v1:
                 var loader = new YamlLoader();
                 var standardDialect = new StandardYamlDialect(loader);
                 var registry = new Yaml2DocRegistry(new[] { standardDialect });
@@ -135,7 +195,6 @@ namespace Yaml2Doc.Cli
                 var markdownRenderer = new BasicMarkdownRenderer();
                 var engine = new Yaml2DocEngine(registry, markdownRenderer);
 
-                // For v1, dialectId is optional and may be ignored by registry/engine
                 var markdown = engine.Convert(yamlText, dialectId);
 
                 if (!string.IsNullOrWhiteSpace(outputPath))
@@ -165,10 +224,8 @@ namespace Yaml2Doc.Cli
             }
             catch (Yaml2DocParseException ex)
             {
-                // Clear message for invalid/malformed YAML.
-                // Engine message is already "Failed to parse YAML: ..."
                 stderr.WriteLine($"Error: {ex.Message}");
-                return 3; // conversion error / invalid YAML
+                return 3;
             }
             catch (Exception ex)
             {
@@ -179,7 +236,7 @@ namespace Yaml2Doc.Cli
         }
 
         /// <summary>
-        /// Writes usage instructions to the specified <see cref="TextWriter"/>.
+        /// Writes usage instructions to the specified output.
         /// </summary>
         /// <param name="writer">The output writer to receive usage text.</param>
         private static void PrintUsage(TextWriter writer)
@@ -196,21 +253,14 @@ namespace Yaml2Doc.Cli
         /// <param name="path">The path provided by the user (relative or absolute).</param>
         /// <param name="baseDirFull">The allowed base directory full path, typically the current working directory.</param>
         /// <param name="allowExistingFile">
-        /// When <see langword="true"/>, existing files are permitted (e.g., input). When <see langword="false"/>, the target
-        /// must not already exist (e.g., output) to prevent unintended overwrite.
+        /// When <see langword="true"/>, existing files are permitted (for input). When <see langword="false"/>, the target
+        /// must not already exist (for output) to prevent unintended overwrite.
         /// </param>
         /// <param name="stderr">Error output writer used to report validation failures.</param>
-        /// <returns>
-        /// The validated full path on success; otherwise, <see langword="null"/> with an error message written to <paramref name="stderr"/>.
-        /// </returns>
+        /// <returns>The validated full path on success; otherwise, <see langword="null"/>.</returns>
         /// <remarks>
-        /// Validation rules:
-        /// - Normalizes to a full path, resolving relative paths against <paramref name="baseDirFull"/>.
-        /// - Rejects UNC and device paths (e.g., <c>\\server\share</c>).
-        /// - Ensures the resolved path remains within <paramref name="baseDirFull"/>.
-        /// - Rejects control characters within the path string.
-        /// - Blocks traversal via reparse points (symlinks/junctions).
-        /// - For output targets, rejects paths that already exist to avoid clobbering.
+        /// Normalizes to a full path, rejects UNC/device paths, ensures containment within the working directory,
+        /// forbids control characters, blocks traversal via reparse points, and rejects existing output targets.
         /// </remarks>
         private static string? ResolveAndValidatePath(string path, string baseDirFull, bool allowExistingFile, TextWriter stderr)
         {
@@ -222,25 +272,20 @@ namespace Yaml2Doc.Cli
                     return null;
                 }
 
-                // Normalize to full path relative to base dir when necessary.
                 var full = Path.GetFullPath(Path.IsPathRooted(path) ? path : Path.Combine(baseDirFull, path));
 
-                // Reject UNC and device-prefixed full paths.
-                if (full.StartsWith(@"\\", StringComparison.Ordinal) || full.StartsWith(@"\\?\",
-                        StringComparison.Ordinal))
+                if (full.StartsWith(@"\\", StringComparison.Ordinal) || full.StartsWith(@"\\?\", StringComparison.Ordinal))
                 {
                     stderr.WriteLine("Error: UNC or device paths are not permitted.");
                     return null;
                 }
 
-                // Ensure the path stays within the allowed base directory.
                 if (!full.StartsWith(baseDirFull, StringComparison.OrdinalIgnoreCase))
                 {
                     stderr.WriteLine("Error: Path resolves outside the allowed working directory.");
                     return null;
                 }
 
-                // Basic sanity: forbid control characters.
                 foreach (var ch in full)
                 {
                     if (char.IsControl(ch))
@@ -250,14 +295,12 @@ namespace Yaml2Doc.Cli
                     }
                 }
 
-                // Block traversal via reparse points in the path.
                 if (TraversesReparsePoint(baseDirFull, full))
                 {
                     stderr.WriteLine("Error: Path traverses a reparse point (symlink/junction).");
                     return null;
                 }
 
-                // When targeting output, avoid overwriting existing files unless allowed.
                 if (!allowExistingFile && File.Exists(full))
                 {
                     stderr.WriteLine($"Error: Output file already exists: '{full}'.");
@@ -274,14 +317,12 @@ namespace Yaml2Doc.Cli
         }
 
         /// <summary>
-        /// Determines whether the provided path token refers to a Windows device path (e.g., <c>CON</c>, <c>NUL</c>). 
+        /// Determines whether the provided path token refers to a Windows device path (e.g., <c>CON</c>, <c>NUL</c>).
         /// </summary>
         /// <param name="path">A file or directory path.</param>
         /// <returns><see langword="true"/> if the path resolves to a reserved device name; otherwise, <see langword="false"/>.</returns>
         private static bool IsDevicePath(string path)
         {
-            // Windows reserved device names without extension
-            // e.g., "CON", "PRN", "AUX", "NUL", "COM1".."COM9", "LPT1".."LPT9"
             var fileName = Path.GetFileName(path);
             if (string.IsNullOrEmpty(fileName))
             {
@@ -317,8 +358,7 @@ namespace Yaml2Doc.Cli
                 return IsReparsePoint(baseTrim);
             }
 
-            var parts = remainder.Split(new[] { Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar },
-                StringSplitOptions.RemoveEmptyEntries);
+            var parts = remainder.Split(new[] { Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar }, StringSplitOptions.RemoveEmptyEntries);
 
             var current = baseTrim;
             foreach (var part in parts)
@@ -350,7 +390,6 @@ namespace Yaml2Doc.Cli
             }
             catch
             {
-                // If attributes cannot be read, err on the side of caution.
                 return true;
             }
         }
