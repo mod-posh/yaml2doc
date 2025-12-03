@@ -4,17 +4,17 @@ Registry that holds available YAML dialects and resolves the appropriate one for
 
 **Remarks**
 
-Resolution can be forced to a specific dialect by id, or determined by querying each dialect's [CanHandle(YamlDocumentContext)](Dialects.IYamlDialect.md#yaml2doc.core.dialects.iyamldialect.canhandle(yaml2doc.core.parsing.yamldocumentcontext)) method in order.
+Resolution can be forced to a specific dialect by identifier, or determined by querying each dialect's [CanHandle(YamlDocumentContext)](Dialects.IYamlDialect.md#yaml2doc.core.dialects.iyamldialect.canhandle(yaml2doc.core.parsing.yamldocumentcontext)) method in registration order. Instances are immutable after construction and safe for concurrent use.
 
 <a id="yaml2doc.core.dialects.yaml2docregistry.#ctor(system.collections.generic.ienumerable[yaml2doc.core.dialects.iyamldialect])"></a>
 ## Method: #ctor(IEnumerable<IYamlDialect>)
 Initializes a new instance of the [Yaml2DocRegistry](Dialects.Yaml2DocRegistry.md) class with the provided dialects.
 
 **Parameters**
-- `dialects` — The collection of dialects to register.
+- `dialects` — The collection of dialects to register. Must not be and must contain at least one element.
 
 **Exceptions**
-- [ArgumentNullException](System.ArgumentNullException.md) — Thrown when `dialects` is null.
+- [ArgumentNullException](System.ArgumentNullException.md) — Thrown when `dialects` is.
 - [ArgumentException](System.ArgumentException.md) — Thrown when no dialects are provided.
 
 <a id="yaml2doc.core.dialects.yaml2docregistry.createdefault"></a>
@@ -34,7 +34,7 @@ Gets the registered dialects in the registry.
 Resolves an appropriate dialect and immediately parses the document into a [PipelineDocument](Models.PipelineDocument.md).
 
 **Parameters**
-- `context` — The loaded YAML document context to parse.
+- `context` — The loaded YAML document context to parse. Must not be.
 - `forcedId` — An optional dialect id to force selection (case-insensitive).
 
 **Returns**
@@ -42,7 +42,7 @@ Resolves an appropriate dialect and immediately parses the document into a [Pipe
 A populated [PipelineDocument](Models.PipelineDocument.md).
 
 **Exceptions**
-- [ArgumentNullException](System.ArgumentNullException.md) — Thrown when `context` is null.
+- [ArgumentNullException](System.ArgumentNullException.md) — Thrown when `context` is.
 - [InvalidOperationException](System.InvalidOperationException.md) — Thrown when no suitable dialect can be resolved or the forced dialect cannot handle the document.
 
 <a id="yaml2doc.core.dialects.yaml2docregistry.resolvedialect(yaml2doc.core.parsing.yamldocumentcontext,string)"></a>
@@ -50,7 +50,7 @@ A populated [PipelineDocument](Models.PipelineDocument.md).
 Resolves a dialect for the given document context, optionally forcing a specific dialect by id.
 
 **Parameters**
-- `context` — The loaded YAML document context to evaluate.
+- `context` — The loaded YAML document context to evaluate. Must not be.
 - `forcedId` — An optional dialect id to force selection (case-insensitive).
 
 **Returns**
@@ -58,6 +58,6 @@ Resolves a dialect for the given document context, optionally forcing a specific
 The matching [IYamlDialect](Dialects.IYamlDialect.md).
 
 **Exceptions**
-- [ArgumentNullException](System.ArgumentNullException.md) — Thrown when `context` is null.
+- [ArgumentNullException](System.ArgumentNullException.md) — Thrown when `context` is.
 - [InvalidOperationException](System.InvalidOperationException.md) — Thrown when a forced id is not registered, the forced dialect cannot handle the document, or no registered dialect can handle the document.
 

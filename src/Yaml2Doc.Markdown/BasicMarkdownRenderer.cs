@@ -2,7 +2,7 @@
 using System.Linq;
 using System.Text;
 using Yaml2Doc.Core.Models;
-using Yaml2Doc.Markdown.Interfaces;
+using Yaml2Doc.Core.Interfaces;
 
 namespace Yaml2Doc.Markdown
 {

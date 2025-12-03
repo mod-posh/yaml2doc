@@ -2,6 +2,8 @@
 - [IYamlDialect](Dialects.IYamlDialect.md)
 - [StandardYamlDialect](Dialects.StandardYamlDialect.md)
 - [Yaml2DocRegistry](Dialects.Yaml2DocRegistry.md)
+- [Yaml2DocEngine](Engine.Yaml2DocEngine.md)
+- [IMarkdownRenderer](Interfaces.IMarkdownRenderer.md)
 - [PipelineDocument](Models.PipelineDocument.md)
 - [YamlDocumentContext](Parsing.YamlDocumentContext.md)
 - [YamlLoader](Parsing.YamlLoader.md)
