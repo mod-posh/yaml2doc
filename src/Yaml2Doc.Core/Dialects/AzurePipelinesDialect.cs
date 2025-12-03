@@ -7,25 +7,34 @@ using YamlDotNet.RepresentationModel;
 namespace Yaml2Doc.Core.Dialects
 {
     /// <summary>
-    /// GitHub Actions-specific YAML dialect.
+    /// Azure DevOps pipelines YAML dialect.
     /// </summary>
     /// <remarks>
-    /// Detection is heuristic-based and considers typical GitHub Actions workflow structure:
+    /// Detection is heuristic-based and considers typical ADO pipeline structure:
     /// - The document root must be a mapping.
-    /// - Presence of root-level keys <c>on</c> and <c>jobs</c>.
+    /// - Presence of root-level keys such as <c>trigger</c>, <c>pool</c>, <c>stages</c>, <c>jobs</c>, or <c>steps</c>.
     /// Parsing delegates to <see cref="YamlLoader"/> to produce a neutral <see cref="PipelineDocument"/>.
     /// Implementations should be deterministic and must not mutate inputs.
     /// </remarks>
-    public sealed class GitHubActionsDialect : IYamlDialect
+    public sealed class AzurePipelinesDialect : IYamlDialect
     {
+        private static readonly string[] KnownRootKeys =
+        {
+            "trigger",
+            "pool",
+            "stages",
+            "jobs",
+            "steps"
+        };
+
         private readonly YamlLoader _loader;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="GitHubActionsDialect"/> class.
+        /// Initializes a new instance of the <see cref="AzurePipelinesDialect"/> class.
         /// </summary>
         /// <param name="loader">The YAML loader used to transform documents into <see cref="PipelineDocument"/> instances.</param>
         /// <exception cref="ArgumentNullException">Thrown when <paramref name="loader"/> is <see langword="null"/>.</exception>
-        public GitHubActionsDialect(YamlLoader loader)
+        public AzurePipelinesDialect(YamlLoader loader)
         {
             _loader = loader ?? throw new ArgumentNullException(nameof(loader));
         }
@@ -33,54 +42,42 @@ namespace Yaml2Doc.Core.Dialects
         /// <summary>
         /// Gets the stable identifier for this dialect.
         /// </summary>
-        /// <remarks>Uses the short form <c>"gha"</c>.</remarks>
-        public string Id => "gha";
+        /// <remarks>Uses the short form <c>"ado"</c>.</remarks>
+        public string Id => "ado";
 
         /// <summary>
         /// Determines whether this dialect can interpret the given YAML document.
         /// </summary>
         /// <param name="context">The loaded YAML document context to inspect. Must not be <see langword="null"/>.</param>
         /// <returns>
-        /// <see langword="true"/> if the document appears to be a GitHub Actions workflow (root is a mapping and has <c>on</c> and <c>jobs</c> keys);
-        /// otherwise, <see langword="false"/>.
+        /// <see langword="true"/> if the root is a mapping and contains any known ADO keys
+        /// (<c>trigger</c>, <c>pool</c>, <c>stages</c>, <c>jobs</c>, <c>steps</c>); otherwise, <see langword="false"/>.
         /// </returns>
         /// <exception cref="ArgumentNullException">Thrown when <paramref name="context"/> is <see langword="null"/>.</exception>
         public bool CanHandle(YamlDocumentContext context)
         {
-            if (context is null)
-            {
-                throw new ArgumentNullException(nameof(context));
-            }
+            if (context is null) throw new ArgumentNullException(nameof(context));
 
-            // Require a mapping root for workflows.
-            if (context.RootNode is not YamlMappingNode)
+            // Require a mapping root for pipelines.
+            if (context.RootNode is not YamlMappingNode mapping)
             {
                 return false;
             }
 
-            // Use the generic loader and inspect the resulting PipelineDocument, avoiding tight coupling to raw nodes.
-            PipelineDocument document;
-            try
-            {
-                document = _loader.Load(context);
-            }
-            catch (YamlLoadException)
-            {
-                // If generic load fails, this dialect cannot handle the document.
-                return false;
-            }
+            var rootKeys = mapping.Children
+                .Keys
+                .OfType<YamlScalarNode>() // only scalar keys are relevant
+                .Select(k => k.Value)
+                .Where(v => !string.IsNullOrEmpty(v))
+                .ToList();
 
-            if (document.Root is null || document.Root.Count == 0)
+            if (rootKeys.Count == 0)
             {
                 return false;
             }
 
-            var keys = document.Root.Keys.ToArray();
-
-            var hasOn = keys.Any(k => string.Equals(k, "on", StringComparison.OrdinalIgnoreCase));
-            var hasJobs = keys.Any(k => string.Equals(k, "jobs", StringComparison.OrdinalIgnoreCase));
-
-            return hasOn && hasJobs;
+            return rootKeys.Any(k =>
+                KnownRootKeys.Contains(k!, StringComparer.OrdinalIgnoreCase));
         }
 
         /// <summary>
@@ -92,12 +89,9 @@ namespace Yaml2Doc.Core.Dialects
         /// <exception cref="YamlLoadException">Thrown when the document cannot be parsed into a valid model.</exception>
         public PipelineDocument Parse(YamlDocumentContext context)
         {
-            if (context is null)
-            {
-                throw new ArgumentNullException(nameof(context));
-            }
+            if (context is null) throw new ArgumentNullException(nameof(context));
 
-            // Generic load into PipelineDocument.
+            // Project into the neutral PipelineDocument, keeping ADO concepts in the Root dictionary.
             return _loader.Load(context);
         }
     }

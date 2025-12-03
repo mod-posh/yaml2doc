@@ -1,0 +1,10 @@
+name: CI
+trigger:
+- main
+
+pool:
+  vmImage: ubuntu-latest
+
+steps:
+- script: echo Hello from Azure Pipelines
+  displayName: Run a one-line script

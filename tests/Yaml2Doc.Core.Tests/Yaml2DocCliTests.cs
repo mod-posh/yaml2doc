@@ -1,8 +1,9 @@
 ﻿using System;
 using System.IO;
+using System.Reflection;
 using System.Text;
-using Yaml2Doc.Cli;
 using Xunit;
+using Yaml2Doc.Cli;
 
 namespace Yaml2Doc.Core.Tests.Cli
 {
@@ -429,6 +430,62 @@ namespace Yaml2Doc.Core.Tests.Cli
 
         private static string NormalizeNewLines(string text)
             => text.Replace("\r\n", "\n").Trim();
+
+        [Fact]
+        public void Run_WithDialectAzurePipelines_Succeeds()
+        {
+            // Arrange
+            using var stdout = new StringWriter();
+            using var stderr = new StringWriter();
+
+            // Mirror the GitHub Actions tests: use the golden folder relative to the test working dir
+            var inputPath = Path.Combine("golden", "azure-pipelines-golden.yml");
+
+            var args = new[]
+            {
+        "--dialect", "ado",
+        inputPath
+    };
+
+            // Act
+            var exitCode = Yaml2DocCli.Run(args, stdout, stderr);
+
+            var outputText = stdout.ToString();
+            var errorText = stderr.ToString();
+
+            // Assert
+            Assert.Equal(0, exitCode);
+            Assert.False(string.IsNullOrWhiteSpace(outputText), "Expected some Markdown to be written to stdout.");
+            Assert.True(string.IsNullOrWhiteSpace(errorText), "Did not expect errors when using the Azure Pipelines dialect.");
+        }
+
+        [Fact]
+        public void Run_WithDialectAzurePipelines_Succeeds_AndMatchesGoldenMarkdown()
+        {
+            // Arrange
+            var inputPath = Path.Combine("golden", "azure-pipelines-golden.yml");
+            var goldenPath = Path.Combine("golden", "azure-pipelines-golden.md");
+
+            using var stdout = new StringWriter();
+            using var stderr = new StringWriter();
+
+            var args = new[]
+            {
+        "--dialect", "ado",
+        inputPath
+    };
+
+            // Act
+            var exitCode = Yaml2DocCli.Run(args, stdout, stderr);
+
+            // Assert
+            Assert.Equal(0, exitCode);
+
+            var actual = NormalizeNewLines(stdout.ToString());
+            var expected = NormalizeNewLines(File.ReadAllText(goldenPath));
+
+            Assert.Equal(expected, actual);
+        }
 
     }
 }

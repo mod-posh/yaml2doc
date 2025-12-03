@@ -39,6 +39,17 @@
       Link="golden\github-actions-golden.md"
       CopyToOutputDirectory="PreserveNewest" />
 
+    <!-- Github Actions golden input -->
+    <None Include="..\..\samples\pipelines\azure-pipelines-golden.yml"
+      Link="golden\azure-pipelines-golden.yml"
+      CopyToOutputDirectory="PreserveNewest" />
+
+    <!-- Github Actions golden output -->
+    <None Include="..\..\samples\pipelines\azure-pipelines-golden.md"
+      Link="golden\azure-pipelines-golden.md"
+      CopyToOutputDirectory="PreserveNewest" />
+
+
   </ItemGroup>
 
   <ItemGroup>

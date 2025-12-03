@@ -7,8 +7,7 @@ namespace Yaml2Doc.Core.Dialects
     /// Registry that holds available YAML dialects and resolves the appropriate one for a given document.
     /// </summary>
     /// <remarks>
-    /// Resolution can be forced to a specific dialect by identifier, or determined by querying each dialect's
-    /// <see cref="IYamlDialect.CanHandle(YamlDocumentContext)"/> method in registration order.
+    /// Dialect resolution proceeds in registration order unless a specific dialect identifier is forced.
     /// Instances are immutable after construction and safe for concurrent use.
     /// </remarks>
     public sealed class Yaml2DocRegistry
@@ -53,9 +52,13 @@ namespace Yaml2Doc.Core.Dialects
         /// Thrown when <paramref name="context"/> is <see langword="null"/>.
         /// </exception>
         /// <exception cref="InvalidOperationException">
-        /// Thrown when a forced id is not registered, the forced dialect cannot handle the document,
-        /// or no registered dialect can handle the document.
+        /// Thrown when a forced id is not registered, or no registered dialect can handle the document.
         /// </exception>
+        /// <remarks>
+        /// When <paramref name="forcedId"/> is provided and found, the corresponding dialect is returned
+        /// without consulting <see cref="IYamlDialect.CanHandle(YamlDocumentContext)"/>. This allows callers
+        /// to bypass heuristics when they know the target dialect.
+        /// </remarks>
         public IYamlDialect ResolveDialect(
             YamlDocumentContext context,
             string? forcedId = null)
@@ -91,7 +94,7 @@ namespace Yaml2Doc.Core.Dialects
         /// Thrown when <paramref name="context"/> is <see langword="null"/>.
         /// </exception>
         /// <exception cref="InvalidOperationException">
-        /// Thrown when no suitable dialect can be resolved or the forced dialect cannot handle the document.
+        /// Thrown when no suitable dialect can be resolved or the forced id is not registered.
         /// </exception>
         public PipelineDocument Parse(
             YamlDocumentContext context,
@@ -106,7 +109,8 @@ namespace Yaml2Doc.Core.Dialects
         /// </summary>
         /// <remarks>
         /// Dialects are registered in order of specificity so that more specialized dialects
-        /// (e.g., <see cref="GitHubActionsDialect"/>) are considered before the generic <see cref="StandardYamlDialect"/>.
+        /// (e.g., <see cref="AzurePipelinesDialect"/>, <see cref="GitHubActionsDialect"/>) are considered
+        /// before the generic <see cref="StandardYamlDialect"/>.
         /// </remarks>
         /// <returns>
         /// A <see cref="Yaml2DocRegistry"/> preconfigured with the built-in dialects.
@@ -116,11 +120,13 @@ namespace Yaml2Doc.Core.Dialects
             var loader = new YamlLoader();
 
             var githubActions = new GitHubActionsDialect(loader);
+            var azurePipelines = new AzurePipelinesDialect(loader);
             var standard = new StandardYamlDialect(loader);
 
             return new Yaml2DocRegistry(new IYamlDialect[]
             {
                 // More specific first:
+                azurePipelines,
                 githubActions,
                 // Generic catch-all:
                 standard
