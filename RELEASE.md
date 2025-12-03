@@ -16,18 +16,6 @@
 > * Plugin-style dialect or DSL architecture beyond what’s needed to support “standard”.
 > * Complex formatting or theming of Markdown.
 
-## ENHANCEMENT
-
-* issue-10: Handle errors gracefully in engine and CLI
-
-## TESTS
-
-* issue-9: Add golden snapshot test for standard YAML → Markdown
-
-## DOCUMENTATION
-
-* issue-11: Document v1 usage, scope, and limitations in README
-
 ## FEATURE
 
 * issue-7: Implement Yaml2Doc CLI entrypoint
@@ -41,8 +29,20 @@
 
 * issue-8: Add standard-golden YAML sample and expected Markdown
 
+## TESTS
+
+* issue-9: Add golden snapshot test for standard YAML → Markdown
+
+## DOCUMENTATION
+
+* issue-11: Document v1 usage, scope, and limitations in README
+
 ## CHORE
 
 * issue-12: Align CI pipelines, NuGet publishing, and shared build props
 * issue-1: Create Yaml2Doc solution structure (.NET 9)
+
+## ENHANCEMENT
+
+* issue-10: Handle errors gracefully in engine and CLI
 
