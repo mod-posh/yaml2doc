@@ -68,6 +68,37 @@ namespace Yaml2Doc.Core.Tests
             Assert.Contains("## Root Keys", markdown);
             Assert.Contains("_(no root keys)_", markdown);
         }
+
+        [Fact]
+        public void DefaultConstructor_UsesBasicMode()
+        {
+            var renderer = new BasicMarkdownRenderer();
+
+            Assert.Equal(MarkdownRenderMode.Basic, renderer.Mode);
+        }
+
+        [Fact]
+        public void Render_WithRichMode_ProducesSameOutputAsBasic_ForNow()
+        {
+            // Arrange
+            var document = new PipelineDocument
+            {
+                Name = "Sample for Rich Mode"
+            };
+            document.Root["foo"] = "bar";
+            document.Root["steps"] = new object();
+
+            var basicRenderer = new BasicMarkdownRenderer(MarkdownRenderMode.Basic);
+            var richRenderer = new BasicMarkdownRenderer(MarkdownRenderMode.Rich);
+
+            // Act
+            var basicMarkdown = basicRenderer.Render(document);
+            var richMarkdown = richRenderer.Render(document);
+
+            // Assert
+            Assert.Equal(basicMarkdown, richMarkdown);
+        }
+
     }
 
     public class BasicMarkdownRendererDialectTests
