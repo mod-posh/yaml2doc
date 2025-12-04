@@ -61,15 +61,7 @@ namespace Yaml2Doc.Core.Dialects
 
             // Use the generic loader and inspect the resulting PipelineDocument, avoiding tight coupling to raw nodes.
             PipelineDocument document;
-            try
-            {
-                document = _loader.Load(context);
-            }
-            catch (YamlLoadException)
-            {
-                // If generic load fails, this dialect cannot handle the document.
-                return false;
-            }
+            document = _loader.Load(context);
 
             if (document.Root is null || document.Root.Count == 0)
             {
