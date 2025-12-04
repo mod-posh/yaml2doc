@@ -172,7 +172,7 @@ Yaml2Doc also supports writing output to a specific file.
 dotnet run --project src/Yaml2Doc.Cli/Yaml2Doc.Cli.csproj -- <input.yml> --output <output.md>
 ```
 
-Example:
+Example (creating the output directory first):
 
 ```bash
 mkdir -p out
