@@ -54,24 +54,26 @@ namespace Yaml2Doc.Core.Dialects
             }
 
             // Require a mapping root for workflows.
-            if (context.RootNode is not YamlMappingNode)
+            if (context.RootNode is not YamlMappingNode mapping)
             {
                 return false;
             }
 
-            // Use the generic loader and inspect the resulting PipelineDocument, avoiding tight coupling to raw nodes.
-            PipelineDocument document;
-            document = _loader.Load(context);
+            // Directly inspect root keys for efficiency, similar to AzurePipelinesDialect.
+            var rootKeys = mapping.Children
+                .Keys
+                .OfType<YamlScalarNode>()
+                .Select(k => k.Value)
+                .Where(v => !string.IsNullOrEmpty(v))
+                .ToList();
 
-            if (document.Root is null || document.Root.Count == 0)
+            if (rootKeys.Count == 0)
             {
                 return false;
             }
 
-            var keys = document.Root.Keys.ToArray();
-
-            var hasOn = keys.Any(k => string.Equals(k, "on", StringComparison.OrdinalIgnoreCase));
-            var hasJobs = keys.Any(k => string.Equals(k, "jobs", StringComparison.OrdinalIgnoreCase));
+            var hasOn = rootKeys.Any(k => string.Equals(k, "on", StringComparison.OrdinalIgnoreCase));
+            var hasJobs = rootKeys.Any(k => string.Equals(k, "jobs", StringComparison.OrdinalIgnoreCase));
 
             return hasOn && hasJobs;
         }
