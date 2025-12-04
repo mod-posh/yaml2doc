@@ -45,9 +45,9 @@ dotnet run --project src/Yaml2Doc.Cli/Yaml2Doc.Cli.csproj -- samples/pipelines/s
 
 Starting with **v1.1.0**, the CLI supports pluggable YAML dialects:
 
-* `standard` – Generic YAML (default, v1-compatible behavior).
-* `gha` – GitHub Actions workflows (`.github/workflows/*.yml`).
-* `ado` – Azure DevOps pipelines (`azure-pipelines.yml`, multi-stage YAML, etc.).
+* `standard` - Generic YAML (default, v1-compatible behavior).
+* `gha` - GitHub Actions workflows (`.github/workflows/*.yml`).
+* `ado` - Azure DevOps pipelines (`azure-pipelines.yml`, multi-stage YAML, etc.).
 
 ### Selecting a dialect via CLI
 
@@ -69,7 +69,7 @@ Example:
 Yaml2Doc --dialect gha samples/pipelines/github-golden.yml
 ```
 
-If you’re running via `dotnet run`, remember to pass arguments after `--`:
+If youâ€™re running via `dotnet run`, remember to pass arguments after `--`:
 
 ```bash
 # Standard dialect (implicit, v1-compatible)
