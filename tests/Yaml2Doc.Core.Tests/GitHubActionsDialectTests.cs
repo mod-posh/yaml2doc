@@ -55,15 +55,15 @@ jobs:
             Assert.Equal("CI", doc.Name);
 
             Assert.True(doc.Root.ContainsKey("on"));
-            Assert.True(doc.Root.ContainsKey("jobs"));
+            Assert.True(doc.Root.TryGetValue("jobs", out var jobsObj));
 
-            var jobs = Assert.IsType<Dictionary<string, object?>>(doc.Root["jobs"]);
-            Assert.True(jobs.ContainsKey("build"));
+            var jobs = Assert.IsType<Dictionary<string, object?>>(jobsObj);
+            Assert.True(jobs.TryGetValue("build", out var buildJobObj));
 
-            var buildJob = Assert.IsType<Dictionary<string, object?>>(jobs["build"]);
-            Assert.True(buildJob.ContainsKey("steps"));
+            var buildJob = Assert.IsType<Dictionary<string, object?>>(buildJobObj);
+            Assert.True(buildJob.TryGetValue("steps", out var stepsObj));
 
-            var steps = Assert.IsType<List<object?>>(buildJob["steps"]);
+            var steps = Assert.IsType<List<object?>>(stepsObj);
             Assert.NotEmpty(steps);
         }
 
