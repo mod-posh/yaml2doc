@@ -24,7 +24,7 @@ dotnet add package Yaml2Doc.Core
 
 ## Basic usage (standard YAML)
 
-The typical flow for plain “standard” YAML is:
+The typical flow for plain �standard� YAML is:
 
 1. Load a YAML document into a `YamlDocumentContext`.
 2. Use the dialect registry to resolve the Standard YAML dialect.
@@ -48,7 +48,7 @@ var loader = new YamlLoader();
 var standardDialect = new StandardYamlDialect(loader);
 
 // For v1.1.0+, you can also register other dialects:
-var ghaDialect = new GitHubActionsYamlDialect(loader);
+var ghaDialect = new GitHubActionsDialect(loader);
 var adoDialect = new AzurePipelinesDialect(loader);
 
 // Register dialect(s)
