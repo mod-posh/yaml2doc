@@ -24,7 +24,7 @@ dotnet run --project src/Yaml2Doc.Cli/Yaml2Doc.Cli.csproj -- <input.yml>
 This will:
 
 * Read `<input.yml>` (which must be inside or below the current working directory).
-* Parse it using the Standard YAML dialect.
+* Parse it using the **Standard** YAML dialect by default.
 * Render a basic Markdown document to **standard output**.
 
 Example:
@@ -38,6 +38,51 @@ You can redirect the output to a file:
 ```bash
 dotnet run --project src/Yaml2Doc.Cli/Yaml2Doc.Cli.csproj -- samples/pipelines/standard-golden.yml > standard-golden.out.md
 ```
+
+---
+
+## Dialects and CLI flags
+
+Starting with **v1.1.0**, the CLI supports pluggable YAML dialects:
+
+* `standard` – Generic YAML (default, v1-compatible behavior).
+* `gha` – GitHub Actions workflows (`.github/workflows/*.yml`).
+* `ado` – Azure DevOps pipelines (`azure-pipelines.yml`, multi-stage YAML, etc.).
+
+### Selecting a dialect via CLI
+
+You can select a dialect explicitly:
+
+```bash
+Yaml2Doc --dialect <id> <input.yml>
+```
+
+Where `<id>` is one of:
+
+* `standard`
+* `gha`
+* `ado`
+
+Example:
+
+```bash
+Yaml2Doc --dialect gha samples/pipelines/github-golden.yml
+```
+
+If you’re running via `dotnet run`, remember to pass arguments after `--`:
+
+```bash
+# Standard dialect (implicit, v1-compatible)
+dotnet run --project src/Yaml2Doc.Cli/Yaml2Doc.Cli.csproj -- samples/pipelines/standard-golden.yml
+
+# Explicit GitHub Actions dialect
+dotnet run --project src/Yaml2Doc.Cli/Yaml2Doc.Cli.csproj -- --dialect gha samples/pipelines/github-golden.yml
+
+# Explicit Azure Pipelines dialect
+dotnet run --project src/Yaml2Doc.Cli/Yaml2Doc.Cli.csproj -- --dialect ado samples/pipelines/azure-golden.yml
+```
+
+If you **omit** the `--dialect` flag, the CLI behaves exactly like v1.0.0: it uses the Standard dialect and produces the same Markdown for a given standard YAML file.
 
 ---
 
