@@ -13,9 +13,9 @@ Strongly-typed result of CLI argument parsing.
 **Parameters**
 - `DialectId` — Optional dialect identifier provided via `--dialect <id>`.
 - `InputPath` — Input YAML file path as provided on the command line.
-- `OutputPath` — Optional output Markdown file path; if `null`, output is written to standard output.
-- `ErrorExitCode` — If parsing fails, the corresponding exit code (e.g., `1`); otherwise, `null`.
-- `ErrorMessage` — Human-readable error message when parsing fails; otherwise, `null`.
+- `OutputPath` — Optional output Markdown file path; if, output is written to standard output.
+- `ErrorExitCode` — If parsing fails, the corresponding exit code (e.g., `1`); otherwise.
+- `ErrorMessage` — Human-readable error message when parsing fails; otherwise.
 
 <a id="yaml2doc.cli.yaml2doccli.parsedarguments.dialectid"></a>
 ## Property: DialectId
