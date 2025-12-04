@@ -1,5 +1,7 @@
 # API Reference
 
+- [AzurePipelinesDialect](Yaml2Doc.Core.Dialects.AzurePipelinesDialect.md)
+- [GitHubActionsDialect](Yaml2Doc.Core.Dialects.GitHubActionsDialect.md)
 - [IYamlDialect](Yaml2Doc.Core.Dialects.IYamlDialect.md)
 - [StandardYamlDialect](Yaml2Doc.Core.Dialects.StandardYamlDialect.md)
 - [Yaml2DocRegistry](Yaml2Doc.Core.Dialects.Yaml2DocRegistry.md)

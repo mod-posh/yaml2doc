@@ -4,7 +4,7 @@ Default, catch-all YAML dialect that interprets generic pipeline YAML into the n
 
 **Remarks**
 
-This dialect currently accepts any YAML document with a mapping root and delegates parsing to [YamlLoader](Yaml2Doc.Core.Parsing.YamlLoader.md). Future versions may introduce stricter detection or specialization. Instances are stateless and safe for concurrent use.
+Accepts any YAML document (current implementation does not restrict by structure) and delegates parsing to [YamlLoader](Yaml2Doc.Core.Parsing.YamlLoader.md). Sets [DialectId](Yaml2Doc.Core.Models.PipelineDocument.md#yaml2doc.core.models.pipelinedocument.dialectid) to `"standard"` during parse. Instances are stateless and safe for concurrent use.
 
 <a id="yaml2doc.core.dialects.standardyamldialect.#ctor(yaml2doc.core.parsing.yamlloader)"></a>
 
@@ -56,7 +56,7 @@ Parses the YAML document into a [PipelineDocument](Yaml2Doc.Core.Models.Pipeline
 
 **Returns**
 
-A populated [PipelineDocument](Yaml2Doc.Core.Models.PipelineDocument.md) representing the input YAML.
+A populated [PipelineDocument](Yaml2Doc.Core.Models.PipelineDocument.md) representing the input YAML, with [DialectId](Yaml2Doc.Core.Models.PipelineDocument.md#yaml2doc.core.models.pipelinedocument.dialectid) set to `"standard"`.
 
 **Exceptions**
 
