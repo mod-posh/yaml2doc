@@ -1,14 +1,19 @@
 # Yaml2Doc
 
-Yaml2Doc is a small command-line tool that converts generic YAML into Markdown.
+Yaml2Doc is a small command-line tool that converts YAML into Markdown.
 
-For v1, the focus is intentionally narrow:
+For the **v1.x** series, the focus is intentionally narrow:
 
-- Parse **standard YAML** (no CI/CD semantics required).
-- Map it into a neutral in-memory model.
+- Parse YAML into a neutral in-memory model.
 - Emit a simple, predictable Markdown document.
+- Keep behavior stable and testable as we add optional features.
 
-Support for GitHub Actions, Azure DevOps, Jenkins, and other pipeline-specific dialects is explicitly **out of scope for v1** (see [Roadmap](#roadmap--future-work)).
+Starting with **v1.1.0**, Yaml2Doc adds **pluggable pipeline-aware dialects** for:
+
+- GitHub Actions
+- Azure DevOps pipelines
+
+…without changing the default behavior for plain “standard” YAML.
 
 ---
 
@@ -22,36 +27,62 @@ API reference is generated from XML docs on each release.
 
 ---
 
-## What Yaml2Doc v1 does
+## Versioning and current release
 
-Yaml2Doc v1 provides:
+> **Current release:** `v1.1.0`
+
+Yaml2Doc follows semantic versioning:
+
+- **v1.0.0** – Baseline: parse standard YAML and emit generic Markdown using the Standard dialect.
+- **v1.1.0** – Adds *optional* GitHub Actions (`gha`) and Azure Pipelines (`ado`) dialects, plus a CLI flag to select them.
+
+This is a **non-breaking minor** release because:
+
+- If you run `Yaml2Doc` **without** any dialect flags, behavior is unchanged from v1.0.0.
+- Existing “standard YAML” workflows and golden tests still pass byte-for-byte.
+- New behavior is opt-in via the `--dialect` flag.
+
+---
+
+## What Yaml2Doc v1.x does
+
+Yaml2Doc v1.x provides:
 
 - A **Standard YAML dialect**:
   - Treats the input as generic YAML with a mapping at the root.
   - Loads content into a neutral `PipelineDocument` model.
+
+- Additional **pipeline-aware dialects** (v1.1.0+):
+  - GitHub Actions dialect for `.github/workflows/*.yml`.
+  - Azure Pipelines dialect for `azure-pipelines.yml` and similar files.
+  - These dialects populate extra metadata in `PipelineDocument` (e.g., triggers, jobs, steps) that the Markdown renderer can surface.
+
 - A **basic Markdown renderer**:
   - `# <Name>` heading based on the `name` field at the root (if present), otherwise `# YAML Document`.
   - A `## Root Keys` section listing the top-level keys in the document.
+  - For dialect-aware documents, additional sections (e.g., `## Trigger`, `## Jobs`, `## Steps`) are added on top of the baseline output.
+
 - A **CLI wrapper** with safe file handling:
   - Resolves user-supplied paths relative to the current working directory.
   - Rejects UNC/device paths and paths that resolve outside the working directory.
   - Blocks traversal through reparse points (symlinks/junctions) inside the working tree.
   - Prevents accidental overwrites by requiring the output file to **not** already exist.
+  - Supports dialect selection via `--dialect <id>`.
 
-The goal is to have a solid, tested foundation (loader + dialect + renderer + CLI) before layering on any dialect-specific intelligence.
+The goal is to have a solid, tested foundation (loader + dialects + renderer + CLI) that still behaves exactly like v1.0.0 for standard YAML, while enabling richer output for CI/CD YAML when you opt in.
 
 ---
 
-## What Yaml2Doc v1 does *not* do
+## What Yaml2Doc v1.x does *not* do
 
-Yaml2Doc v1 does **not**:
+Even with dialects, Yaml2Doc v1.x does **not**:
 
-- Understand GitHub Actions, Azure DevOps, Jenkins, or any other CI/CD platform semantics.
 - Validate that the YAML is a “valid pipeline” for any particular system.
-- Render platform-specific sections differently based on `kind`, `apiVersion`, `jobs`, `steps`, etc.
 - Act as a linter or schema validator.
+- Enforce CI/CD semantics like matrix strategies, reusable workflows, or Azure DevOps templates.
+- Replace official tools (e.g., `act`, `azure-pipelines` validator, etc.).
 
-Right now, *all* YAML is treated as generic “standard” YAML. Dialects and DSL-aware behavior are planned for later milestones.
+Dialects provide a **friendlier Markdown view** over pipeline YAML, not full semantic validation.
 
 ---
 
@@ -60,16 +91,16 @@ Right now, *all* YAML is treated as generic “standard” YAML. Dialects and DS
 The solution is split into a few projects:
 
 - `Yaml2Doc.Core`  
-  Core types: YAML loading, `PipelineDocument`, dialect abstraction/registry, and the Standard YAML dialect.
+  Core types: YAML loading, `PipelineDocument`, dialect abstraction/registry, and concrete dialects (Standard, GitHub Actions, Azure Pipelines).
 
 - `Yaml2Doc.Markdown`  
-  Markdown rendering for `PipelineDocument` (currently the baseline `BasicMarkdownRenderer`).
+  Markdown rendering for `PipelineDocument` (baseline `BasicMarkdownRenderer` plus optional dialect-aware sections).
 
 - `Yaml2Doc.Cli`  
   Console application that wires YAML parsing, dialect selection, and Markdown rendering together behind a simple CLI.
 
 - `Yaml2Doc.Core.Tests`  
-  xUnit tests for the loader, dialect registry, renderer, and CLI behavior.
+  xUnit tests for the loader, dialect registry, renderer, and CLI behavior (including golden tests for standard and dialect-specific Markdown).
 
 ---
 
@@ -107,7 +138,7 @@ Both commands should succeed before you rely on the tool.
 
 The simplest way to run the CLI is via `dotnet run` against the CLI project.
 
-### Basic usage
+### Basic usage (standard YAML)
 
 ```bash
 dotnet run --project src/Yaml2Doc.Cli/Yaml2Doc.Cli.csproj -- <input.yml>
@@ -141,9 +172,10 @@ Yaml2Doc also supports writing output to a specific file.
 dotnet run --project src/Yaml2Doc.Cli/Yaml2Doc.Cli.csproj -- <input.yml> --output <output.md>
 ```
 
-Example:
+Example (creating the output directory first):
 
 ```bash
+mkdir -p out
 dotnet run --project src/Yaml2Doc.Cli/Yaml2Doc.Cli.csproj -- samples/pipelines/standard-golden.yml --output out/standard-golden.md
 ```
 
@@ -156,56 +188,115 @@ If the input file is missing, can’t be read, or fails validation, the CLI retu
 
 ---
 
-## Example: From clone to Markdown
+## Dialects and usage examples
 
-1. **Clone the repository**
+### Dialect IDs
 
-   ```bash
-   git clone <your-repo-url> yaml2doc
-   cd yaml2doc
-   ```
+Yaml2Doc currently ships with three dialects:
 
-2. **Build and test**
+* `standard` – Generic YAML (default).
+* `gha` – GitHub Actions workflows.
+* `ado` – Azure DevOps pipelines.
 
-   ```bash
-   dotnet build
-   dotnet test
-   ```
+### Selecting a dialect via CLI
 
-3. **Run against the standard sample**
+You can select a dialect explicitly:
 
-   ```bash
-   dotnet run --project src/Yaml2Doc.Cli/Yaml2Doc.Cli.csproj -- samples/pipelines/standard-golden.yml
-   ```
+```bash
+Yaml2Doc --dialect <id> <input.yml>
+```
 
-   You should see Markdown output similar to the expected `samples/pipelines/standard-golden.md`.
+Where `<id>` is one of `standard`, `gha`, or `ado`.
 
-4. **Write Markdown to a file**
+When running via `dotnet run`:
 
-   ```bash
-   mkdir -p out
-   dotnet run --project src/Yaml2Doc.Cli/Yaml2Doc.Cli.csproj -- samples/pipelines/standard-golden.yml --output out/standard-golden.md
-   ```
+```bash
+# Standard dialect (implicit, v1-compatible)
+dotnet run --project src/Yaml2Doc.Cli/Yaml2Doc.Cli.csproj -- samples/pipelines/standard-golden.yml
 
-   Open `out/standard-golden.md` in your editor to confirm the output.
+# Explicit GitHub Actions dialect
+dotnet run --project src/Yaml2Doc.Cli/Yaml2Doc.Cli.csproj -- --dialect gha samples/pipelines/github-golden.yml
+
+# Explicit Azure Pipelines dialect
+dotnet run --project src/Yaml2Doc.Cli/Yaml2Doc.Cli.csproj -- --dialect ado samples/pipelines/azure-golden.yml
+```
+
+If you omit the dialect flag entirely, Yaml2Doc behaves exactly like v1.0.0 (Standard dialect only).
+
+### Example: GitHub Actions workflow
+
+Assuming you have a sample workflow at `samples/pipelines/github-golden.yml`:
+
+```bash
+Yaml2Doc --dialect gha samples/pipelines/github-golden.yml > github-golden.md
+```
+
+The generated Markdown will:
+
+* Keep the familiar structure:
+
+  * `# <Name>` heading (e.g., `# CI`)
+  * `## Root Keys` section listing `name`, `on`, `jobs`, etc.
+
+* Add **GitHub Actions-aware sections**, for example:
+
+  * `## Triggers` – summarizing `on:` (push, pull_request, branches, etc.).
+  * `## Jobs` – high-level job list.
+  * `## Steps` – bullet points or tables for key steps per job.
+
+These extra sections are *additive*: they don’t remove or change the original header or `Root Keys` section.
+
+### Example: Azure DevOps pipeline
+
+Assuming you have a sample pipeline at `samples/pipelines/azure-golden.yml`:
+
+```bash
+Yaml2Doc --dialect ado samples/pipelines/azure-golden.yml > azure-golden.md
+```
+
+The generated Markdown will:
+
+* Preserve the same baseline:
+
+  * `# <Name>` heading (e.g., `# CI`)
+  * `## Root Keys` section listing `name`, `trigger`, `pool`, `steps` / `stages`, etc.
+
+* Add **Azure Pipelines-aware sections**, for example:
+
+  * `## Trigger` – summarizing `trigger:` branches and conditions.
+  * `## Stages` / `## Jobs` – structured overview of stages and jobs.
+  * `## Steps` – key steps for each job.
+
+Again, these dialect-aware sections are layered **on top of** the v1 Markdown. If you switch back to:
+
+```bash
+Yaml2Doc azure-pipelines.yml
+```
+
+(with no `--dialect` flag), you get the original v1-style output without the extra sections.
 
 ---
 
 ## Roadmap & future work
 
-Yaml2Doc is designed with pluggable YAML dialects in mind.
+Yaml2Doc is built around pluggable YAML dialects.
 
-Planned future milestones include:
+**Delivered in v1.1.0:**
 
-* **Dialect-aware parsing** for:
+* Standard / GitHub Actions / Azure Pipelines dialects.
+* Dialect selection via `--dialect <id>`.
+* Golden tests for standard and pipeline YAML to lock in behavior.
 
-  * GitHub Actions (`.github/workflows/*.yml`)
-  * Azure DevOps pipelines (`azure-pipelines.yml`)
-  * Other CI/CD and YAML-based DSLs
-* **Dialect selection** via CLI flags (e.g. `--gha`, `--ado`) and/or auto-detection.
-* **Richer Markdown output**:
+**Planned future milestones:**
 
-  * Sections that understand jobs/steps, triggers, inputs, etc.
+* Additional dialects:
+
+  * Jenkins pipelines
+  * Other YAML-based DSLs
+
+* Richer Markdown output:
+
+  * More detailed sections for jobs/steps, triggers, inputs, matrices, etc.
   * Comparison views showing “standard YAML” vs. dialect-specific additions.
 
-For v1, though, the contract is intentionally simple: *standard YAML in, straightforward Markdown out*, with safe file handling and a set of tests to keep behavior predictable.
+For now, the contract stays simple: *standard YAML in, straightforward Markdown out* by default, with optional dialect-aware Markdown when you ask for it.

@@ -1,8 +1,9 @@
 ﻿using System;
 using System.IO;
+using System.Reflection;
 using System.Text;
-using Yaml2Doc.Cli;
 using Xunit;
+using Yaml2Doc.Cli;
 
 namespace Yaml2Doc.Core.Tests.Cli
 {
@@ -232,6 +233,330 @@ namespace Yaml2Doc.Core.Tests.Cli
                     File.Delete(inputPath);
                 }
             }
+        }
+    }
+
+    public class Yaml2DocCliDialectTests
+    {
+        [Fact]
+        public void ParseArguments_NoDialectFlag_LeavesDialectNull()
+        {
+            var parsed = Yaml2DocCli.ParseArguments(new[] { "input.yml" });
+
+            Assert.Null(parsed.DialectId);
+            Assert.Equal("input.yml", parsed.InputPath);
+            Assert.Null(parsed.OutputPath);
+            Assert.Null(parsed.ErrorExitCode);
+        }
+
+        [Fact]
+        public void ParseArguments_WithDialectStandard_SetsDialectId()
+        {
+            var parsed = Yaml2DocCli.ParseArguments(new[] { "--dialect", "standard", "input.yml" });
+
+            Assert.Equal("standard", parsed.DialectId);
+            Assert.Equal("input.yml", parsed.InputPath);
+            Assert.Null(parsed.OutputPath);
+            Assert.Null(parsed.ErrorExitCode);
+        }
+
+        [Fact]
+        public void ParseArguments_WithDialectGha_SetsDialectIdToGha()
+        {
+            var parsed = Yaml2DocCli.ParseArguments(new[] { "--dialect", "gha", "workflow.yml" });
+
+            Assert.Equal("gha", parsed.DialectId);
+            Assert.Equal("workflow.yml", parsed.InputPath);
+            Assert.Null(parsed.OutputPath);
+            Assert.Null(parsed.ErrorExitCode);
+        }
+
+        [Fact]
+        public void ParseArguments_WithDialectAdo_SetsDialectIdToAdo()
+        {
+            var parsed = Yaml2DocCli.ParseArguments(new[] { "--dialect", "ado", "azure-pipelines.yml" });
+
+            Assert.Equal("ado", parsed.DialectId);
+            Assert.Equal("azure-pipelines.yml", parsed.InputPath);
+            Assert.Null(parsed.OutputPath);
+            Assert.Null(parsed.ErrorExitCode);
+        }
+
+        [Fact]
+        public void ParseArguments_DialectWithoutValue_ReturnsError()
+        {
+            var parsed = Yaml2DocCli.ParseArguments(new[] { "--dialect" });
+
+            Assert.NotNull(parsed.ErrorExitCode);
+            Assert.Equal(1, parsed.ErrorExitCode);
+            Assert.Contains("--dialect option requires an argument", parsed.ErrorMessage);
+        }
+
+        [Fact]
+        public void Run_WithDialectStandard_Succeeds()
+        {
+            // Arrange: create input in the current working directory
+            var baseDir = Directory.GetCurrentDirectory();
+            var inputPath = Path.Combine(baseDir, $"yaml2doc-cli-dialect-standard-{Guid.NewGuid():N}.yml");
+
+            var yaml = "name: test-document\nfoo: bar";
+            File.WriteAllText(inputPath, yaml);
+
+            using var stdout = new StringWriter();
+            using var stderr = new StringWriter();
+
+            var args = new[]
+            {
+                "--dialect", "standard",
+                inputPath
+            };
+
+            try
+            {
+                // Act
+                var exitCode = Yaml2DocCli.Run(args, stdout, stderr);
+                var outputText = stdout.ToString();
+                var errorText = stderr.ToString();
+
+                // Assert
+                Assert.Equal(0, exitCode);
+                Assert.False(string.IsNullOrWhiteSpace(outputText), "Expected some Markdown to be written to stdout.");
+                Assert.True(string.IsNullOrWhiteSpace(errorText), "Did not expect errors when using the standard dialect.");
+            }
+            finally
+            {
+                if (File.Exists(inputPath))
+                {
+                    File.Delete(inputPath);
+                }
+            }
+        }
+
+        [Fact]
+        public void Run_WithNonexistentDialect_FailsWithClearError()
+        {
+            // Arrange: create input in the current working directory
+            var baseDir = Directory.GetCurrentDirectory();
+            var inputPath = Path.Combine(baseDir, $"yaml2doc-cli-dialect-nonexistent-{Guid.NewGuid():N}.yml");
+
+            var yaml = "name: test-document\nfoo: bar";
+            File.WriteAllText(inputPath, yaml);
+
+            using var stdout = new StringWriter();
+            using var stderr = new StringWriter();
+
+            var args = new[]
+            {
+                "--dialect", "nonexistent",
+                inputPath
+            };
+
+            try
+            {
+                // Act
+                var exitCode = Yaml2DocCli.Run(args, stdout, stderr);
+                var errorText = stderr.ToString();
+
+                // Assert
+                // Invalid dialect bubbles as InvalidOperationException from the engine,
+                // caught by the general catch, which returns 3.
+                Assert.Equal(3, exitCode);
+                Assert.Contains("No dialect with id 'nonexistent' is registered.", errorText);
+            }
+            finally
+            {
+                if (File.Exists(inputPath))
+                {
+                    File.Delete(inputPath);
+                }
+            }
+        }
+
+        [Fact]
+        public void Run_WithDialectGitHubActions_Succeeds()
+        {
+            // Arrange
+            var inputPath = Path.Combine("golden", "github-actions-golden.yml");
+
+            using var stdout = new StringWriter();
+            using var stderr = new StringWriter();
+
+            // Act
+            var exitCode = Yaml2DocCli.Run(
+                new[]
+                {
+                    "--dialect", "gha",
+                    inputPath
+                },
+                stdout,
+                stderr);
+
+            // Assert
+            Assert.Equal(0, exitCode);
+
+            var markdown = stdout.ToString();
+            Assert.NotEmpty(markdown);
+            Assert.Contains("Root Keys", markdown); // from BasicMarkdownRenderer
+        }
+
+        [Fact]
+        public void Run_WithDialectGitHubActions_Succeeds_AndMatchesGoldenMarkdown()
+        {
+            // Arrange
+            var inputPath = Path.Combine("golden", "github-actions-golden.yml");
+            var goldenPath = Path.Combine("golden", "github-actions-golden.md");
+
+            using var stdout = new StringWriter();
+            using var stderr = new StringWriter();
+
+            // Act
+            var exitCode = Yaml2DocCli.Run(
+                new[]
+                {
+            "--dialect", "gha",
+            inputPath
+                },
+                stdout,
+                stderr);
+
+            // Assert
+            Assert.Equal(0, exitCode);
+
+            var actual = NormalizeNewLines(stdout.ToString());
+            var expected = NormalizeNewLines(File.ReadAllText(goldenPath));
+
+            // Validate the baseline golden content appears at the start
+            Assert.StartsWith(expected, actual);
+            
+            // Ensure the golden content is complete and followed by extra sections
+            // (not inserted in the middle). The expected content should be followed
+            // by either EOF or a blank line and then dialect-specific sections.
+            var expectedLength = expected.Length;
+            if (actual.Length > expectedLength)
+            {
+                // There's extra content beyond the golden file
+                var remainingContent = actual.Substring(expectedLength);
+                
+                // Extra content should start with blank line(s) or newline(s)
+                Assert.True(
+                    remainingContent.StartsWith("\n") || remainingContent.StartsWith("\r"),
+                    "Extra dialect-aware content should be separated from baseline by a newline");
+            }
+        }
+
+        private static string NormalizeNewLines(string text)
+            => text.Replace("\r\n", "\n").Trim();
+
+        [Fact]
+        public void Run_WithDialectAzurePipelines_Succeeds()
+        {
+            // Arrange
+            using var stdout = new StringWriter();
+            using var stderr = new StringWriter();
+
+            // Mirror the GitHub Actions tests: use the golden folder relative to the test working dir
+            var inputPath = Path.Combine("golden", "azure-pipelines-golden.yml");
+
+            var args = new[]
+            {
+                "--dialect", "ado",
+                inputPath
+            };
+
+            // Act
+            var exitCode = Yaml2DocCli.Run(args, stdout, stderr);
+
+            var outputText = stdout.ToString();
+            var errorText = stderr.ToString();
+
+            // Assert
+            Assert.Equal(0, exitCode);
+            Assert.False(string.IsNullOrWhiteSpace(outputText), "Expected some Markdown to be written to stdout.");
+            Assert.True(string.IsNullOrWhiteSpace(errorText), "Did not expect errors when using the Azure Pipelines dialect.");
+        }
+
+        [Fact]
+        public void Run_WithDialectAzurePipelines_Succeeds_AndMatchesGoldenMarkdown()
+        {
+            // Arrange
+            var inputPath = Path.Combine("golden", "azure-pipelines-golden.yml");
+            var goldenPath = Path.Combine("golden", "azure-pipelines-golden.md");
+
+            using var stdout = new StringWriter();
+            using var stderr = new StringWriter();
+
+            var args = new[]
+            {
+                "--dialect", "ado",
+                inputPath
+            };
+
+            // Act
+            var exitCode = Yaml2DocCli.Run(args, stdout, stderr);
+
+            // Assert
+            Assert.Equal(0, exitCode);
+
+            var actual = NormalizeNewLines(stdout.ToString());
+            var expected = NormalizeNewLines(File.ReadAllText(goldenPath));
+
+            // Validate the baseline golden content appears at the start
+            Assert.StartsWith(expected, actual);
+            
+            // Ensure the golden content is complete and followed by extra sections
+            // (not inserted in the middle). The expected content should be followed
+            // by either EOF or a blank line and then dialect-specific sections.
+            var expectedLength = expected.Length;
+            if (actual.Length > expectedLength)
+            {
+                // There's extra content beyond the golden file
+                var remainingContent = actual.Substring(expectedLength);
+                
+                // Extra content should start with blank line(s) or newline(s)
+                Assert.True(
+                    remainingContent.StartsWith("\n") || remainingContent.StartsWith("\r"),
+                    "Extra dialect-aware content should be separated from baseline by a newline");
+            }
+        }
+
+        [Fact]
+        public void Run_WithStandardGoldenYaml_ProducesSameMarkdownAsGoldenFile()
+        {
+            // Arrange: relative to the test working directory,
+            // assuming both files are in tests\Yaml2Doc.Core.Tests\golden
+            var inputPath = Path.Combine("golden", "standard-golden.yml");
+            var goldenPath = Path.Combine("golden", "standard-golden.md");
+
+            var expectedMarkdown = File.ReadAllText(goldenPath);
+
+            var stdout = new StringWriter(new StringBuilder());
+            var stderr = new StringWriter(new StringBuilder());
+
+            var args = new[]
+            {
+                "--dialect", "standard",
+                inputPath
+            };
+
+            // Act
+            var exitCode = Yaml2DocCli.Run(
+                args,
+                stdout,
+                stderr);
+
+            var actualMarkdown = stdout.ToString();
+
+            // Assert
+            Assert.Equal(0, exitCode);
+
+            static string Normalize(string s) =>
+                s.Replace("\r\n", "\n").Replace('\r', '\n');
+
+            Assert.Equal(
+                Normalize(expectedMarkdown),
+                Normalize(actualMarkdown));
+
+            Assert.True(string.IsNullOrWhiteSpace(stderr.ToString()));
         }
     }
 }

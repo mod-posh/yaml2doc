@@ -8,7 +8,7 @@
     <RepositoryType>git</RepositoryType>
 
     <!-- Version: shared across packages (can override per project if needed) -->
-    <VersionPrefix>1.0.0</VersionPrefix>
+    <VersionPrefix>1.1.0</VersionPrefix>
     <VersionSuffix>preview</VersionSuffix>
 
     <!-- Build defaults -->
