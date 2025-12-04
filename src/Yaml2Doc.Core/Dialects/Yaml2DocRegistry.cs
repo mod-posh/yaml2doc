@@ -43,16 +43,16 @@ namespace Yaml2Doc.Core.Dialects
         public IReadOnlyList<IYamlDialect> Dialects => _dialects;
 
         /// <summary>
-        /// Resolves a dialect for the given document context, optionally forcing a specific dialect by id.
+        /// Resolves a dialect for the given document context, optionally forcing a specific dialect by identifier.
         /// </summary>
         /// <param name="context">The loaded YAML document context to evaluate. Must not be <see langword="null"/>.</param>
-        /// <param name="forcedId">An optional dialect id to force selection (case-insensitive).</param>
+        /// <param name="forcedId">An optional dialect identifier to force selection (case-insensitive).</param>
         /// <returns>The matching <see cref="IYamlDialect"/>.</returns>
         /// <exception cref="ArgumentNullException">
         /// Thrown when <paramref name="context"/> is <see langword="null"/>.
         /// </exception>
         /// <exception cref="InvalidOperationException">
-        /// Thrown when a forced id is not registered, or no registered dialect can handle the document.
+        /// Thrown when a forced identifier is not registered, or no registered dialect can handle the document.
         /// </exception>
         /// <remarks>
         /// When <paramref name="forcedId"/> is provided and found, the corresponding dialect is returned
@@ -88,13 +88,13 @@ namespace Yaml2Doc.Core.Dialects
         /// Resolves an appropriate dialect and immediately parses the document into a <see cref="PipelineDocument"/>.
         /// </summary>
         /// <param name="context">The loaded YAML document context to parse. Must not be <see langword="null"/>.</param>
-        /// <param name="forcedId">An optional dialect id to force selection (case-insensitive).</param>
+        /// <param name="forcedId">An optional dialect identifier to force selection (case-insensitive).</param>
         /// <returns>A populated <see cref="PipelineDocument"/>.</returns>
         /// <exception cref="ArgumentNullException">
         /// Thrown when <paramref name="context"/> is <see langword="null"/>.
         /// </exception>
         /// <exception cref="InvalidOperationException">
-        /// Thrown when no suitable dialect can be resolved or the forced id is not registered.
+        /// Thrown when no suitable dialect can be resolved or the forced identifier is not registered.
         /// </exception>
         public PipelineDocument Parse(
             YamlDocumentContext context,

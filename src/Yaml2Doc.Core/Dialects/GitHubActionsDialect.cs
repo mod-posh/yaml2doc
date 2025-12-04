@@ -59,7 +59,7 @@ namespace Yaml2Doc.Core.Dialects
                 return false;
             }
 
-            // Directly inspect root keys for efficiency, similar to AzurePipelinesDialect.
+            // Inspect root keys directly for efficiency.
             var hasOn = false;
             var hasJobs = false;
 
@@ -79,7 +79,7 @@ namespace Yaml2Doc.Core.Dialects
                     hasJobs = true;
                 }
 
-                // Early exit if both keys are found
+                // Early exit if both keys are found.
                 if (hasOn && hasJobs)
                 {
                     return true;

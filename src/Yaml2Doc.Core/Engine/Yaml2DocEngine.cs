@@ -11,12 +11,12 @@ namespace Yaml2Doc.Core.Engine
     /// Main orchestration entry point for converting YAML text into Markdown.
     /// </summary>
     /// <remarks>
-    /// The engine:
+    /// The engine performs the following steps:
     /// 1) Builds a <see cref="YamlDocumentContext"/> from the raw YAML.
     /// 2) Resolves a dialect via <see cref="Yaml2DocRegistry"/> (optionally by identifier).
     /// 3) Parses the context into a <see cref="PipelineDocument"/>.
     /// 4) Renders the document to Markdown using the configured <see cref="IMarkdownRenderer"/>.
-    /// Instances are immutable after construction; dependencies are required and validated at initialization.
+    /// Instances are immutable after construction. Dependencies are required and validated at initialization.
     /// </remarks>
     public sealed class Yaml2DocEngine
     {
@@ -40,12 +40,10 @@ namespace Yaml2Doc.Core.Engine
         /// <summary>
         /// Converts a raw YAML string into Markdown.
         /// </summary>
-        /// <param name="yaml">
-        /// Raw YAML text to be processed. Must not be <see langword="null"/> or whitespace.
-        /// </param>
+        /// <param name="yaml">Raw YAML text to be processed. Must not be <see langword="null"/> or whitespace.</param>
         /// <param name="dialectId">
         /// Optional dialect identifier. When provided, the registry resolves
-        /// the dialect by this ID; otherwise, it falls back to the first dialect
+        /// the dialect by this identifier; otherwise, it falls back to the first dialect
         /// whose <c>CanHandle</c> returns <see langword="true"/>.
         /// </param>
         /// <returns>
@@ -54,7 +52,7 @@ namespace Yaml2Doc.Core.Engine
         /// </returns>
         /// <exception cref="Yaml2DocParseException">
         /// Thrown when the YAML text is empty or cannot be parsed into a valid <see cref="PipelineDocument"/>.
-        /// Low-level <see cref="YamlException"/> instances are wrapped in this exception.
+        /// Low-level <see cref="YamlException"/> and <see cref="YamlLoadException"/> instances are wrapped in this exception.
         /// </exception>
         public string Convert(string yaml, string? dialectId = null)
         {
@@ -82,7 +80,7 @@ namespace Yaml2Doc.Core.Engine
             }
             catch (Exception ex) when (ex is YamlLoadException || ex is YamlException)
             {
-                // Wrap low-level YAML parsing issues in a domain-specific exception
+                // Wrap low-level YAML parsing issues in a domain-specific exception.
                 throw new Yaml2DocParseException(
                     $"Failed to parse YAML: {ex.Message}",
                     ex);

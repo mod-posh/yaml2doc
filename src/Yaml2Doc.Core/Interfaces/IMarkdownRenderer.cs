@@ -11,7 +11,7 @@ namespace Yaml2Doc.Core.Interfaces
     /// Defines a contract for rendering a <see cref="PipelineDocument"/> into Markdown.
     /// </summary>
     /// <remarks>
-    /// Implementations should be deterministic for the same input, avoid mutating the provided
+    /// Implementations should be deterministic for the same input, must not mutate the provided
     /// <see cref="PipelineDocument"/>, and may be called multiple times with different documents.
     /// </remarks>
     public interface IMarkdownRenderer
@@ -19,12 +19,11 @@ namespace Yaml2Doc.Core.Interfaces
         /// <summary>
         /// Renders the specified <paramref name="document"/> into a Markdown string.
         /// </summary>
-        /// <param name="document">
-        /// The <see cref="PipelineDocument"/> to render. Must not be <see langword="null"/>.
-        /// </param>
+        /// <param name="document">The <see cref="PipelineDocument"/> to render. Must not be <see langword="null"/>.</param>
         /// <returns>
         /// A <see cref="string"/> containing the Markdown representation of the provided
-        /// <see cref="PipelineDocument"/>. Never returns <see langword="null"/>.
+        /// <see cref="PipelineDocument"/>. The method never returns <see langword="null"/>; an empty string
+        /// may be returned when there is no content to render.
         /// </returns>
         /// <exception cref="ArgumentNullException">
         /// Thrown when <paramref name="document"/> is <see langword="null"/>.

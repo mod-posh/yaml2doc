@@ -7,18 +7,17 @@ namespace Yaml2Doc.Core.Dialects
     /// Defines a strategy for interpreting a YAML pipeline document for a specific CI/CD dialect.
     /// </summary>
     /// <remarks>
-    /// Implementations should identify whether they can handle a given document and, if so,
+    /// Implementations should determine whether they can handle a given document and, if so,
     /// parse it into the neutral <see cref="PipelineDocument"/> model. Implementations are expected
-    /// to be stateless, avoid mutating the provided inputs, and produce deterministic results for
-    /// the same input.
+    /// to be stateless, avoid mutating inputs, and produce deterministic results for the same input.
     /// </remarks>
     public interface IYamlDialect
     {
         /// <summary>
-        /// Stable identifier for the dialect (e.g., "standard", "github", "ado").
+        /// Stable identifier for the dialect (e.g., <c>standard</c>, <c>gha</c>, <c>ado</c>).
         /// </summary>
         /// <remarks>
-        /// This value should be short, lowercase, and unique across dialect implementations.
+        /// The identifier should be short, lowercase, and unique across dialect implementations.
         /// </remarks>
         string Id { get; }
 

@@ -10,7 +10,7 @@ namespace Yaml2Doc.Core.Models
     /// Represents a failure to parse YAML input into a <see cref="PipelineDocument"/>.
     /// </summary>
     /// <remarks>
-    /// Thrown when the YAML text is syntactically invalid, violates expected schema,
+    /// This exception is thrown when the YAML text is syntactically invalid, violates the expected schema,
     /// or cannot be transformed into the neutral <see cref="PipelineDocument"/> model.
     /// </remarks>
     public sealed class Yaml2DocParseException : Exception

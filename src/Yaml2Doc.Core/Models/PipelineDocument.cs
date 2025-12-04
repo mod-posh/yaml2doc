@@ -12,7 +12,7 @@ namespace Yaml2Doc.Core.Models
     /// <remarks>
     /// The model is generic and not tied to any single CI/CD dialect.
     /// Top-level keys are stored in a case-insensitive map to simplify common CI configuration usage.
-    /// Instances are mutable, but consumers should avoid mutating shared instances across threads.
+    /// Instances are mutable; avoid sharing and mutating the same instance across threads.
     /// </remarks>
     /// <example>
     /// <code>
@@ -57,8 +57,7 @@ namespace Yaml2Doc.Core.Models
         /// </summary>
         public PipelineDocument()
         {
-            // Case-insensitive top-level keys is usually nicer for CI configs,
-            // but you can switch to Ordinal if you want strictness.
+            // Case-insensitive top-level keys are usually more convenient for CI configs.
             Root = new Dictionary<string, object?>(StringComparer.OrdinalIgnoreCase);
         }
 

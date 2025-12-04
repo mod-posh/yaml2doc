@@ -9,8 +9,9 @@ namespace Yaml2Doc.Core.Parsing
     /// Transforms a parsed YAML document into the neutral <see cref="PipelineDocument"/> model.
     /// </summary>
     /// <remarks>
-    /// Expects the root of the YAML to be a mapping (object). Nested nodes are converted into
+    /// Expects the document root to be a mapping (object). Nested nodes are converted into
     /// dictionaries, lists, and strings to keep the model simple and loader-agnostic.
+    /// The loader does not mutate inputs and produces deterministic results for a given YAML.
     /// </remarks>
     public sealed class YamlLoader
     {
@@ -18,10 +19,10 @@ namespace Yaml2Doc.Core.Parsing
         /// Converts the parsed YAML represented by <paramref name="context"/> into a neutral
         /// <see cref="PipelineDocument"/> model.
         /// </summary>
-        /// <param name="context">The validated YAML document context to load from.</param>
+        /// <param name="context">The validated YAML document context to load from. Must not be <see langword="null"/>.</param>
         /// <returns>A populated <see cref="PipelineDocument"/>.</returns>
         /// <exception cref="ArgumentNullException">Thrown when <paramref name="context"/> is <see langword="null"/>.</exception>
-        /// <exception cref="YamlLoadException">Thrown when the root node is not a mapping or contains invalid keys.</exception>
+        /// <exception cref="YamlLoadException">Thrown when the root node is not a mapping or a root key is invalid.</exception>
         public PipelineDocument Load(YamlDocumentContext context)
         {
             if (context is null)
@@ -50,7 +51,7 @@ namespace Yaml2Doc.Core.Parsing
                 document.Root[key] = value;
             }
 
-            // Set Name from root["name"] (case-insensitive because of your dictionary)
+            // Set Name from root["name"] (case-insensitive due to the dictionary comparer).
             if (document["name"] is string nameStr &&
                 !string.IsNullOrWhiteSpace(nameStr))
             {
@@ -65,8 +66,8 @@ namespace Yaml2Doc.Core.Parsing
         /// </summary>
         /// <param name="node">The YAML node to convert.</param>
         /// <returns>
-        /// A <see cref="string"/> for scalars, <see cref="IDictionary{TKey, TValue}"/> for mappings,
-        /// <see cref="IList{T}"/> for sequences, or <see langword="null"/> when appropriate.
+        /// A <see cref="string"/> for scalars, an <see cref="IDictionary{TKey, TValue}"/> for mappings,
+        /// an <see cref="IList{T}"/> for sequences, or <see langword="null"/> when appropriate.
         /// </returns>
         /// <exception cref="YamlLoadException">Thrown for unsupported node types.</exception>
         private static object? ConvertNode(YamlNode node)
@@ -89,7 +90,7 @@ namespace Yaml2Doc.Core.Parsing
         /// <exception cref="YamlLoadException">Thrown when a mapping key is not a scalar.</exception>
         private static IDictionary<string, object?> ConvertMapping(YamlMappingNode mapping)
         {
-            // Nested mappings can be case-sensitive or insensitive; Ordinal is fine here.
+            // Nested mappings use ordinal comparison for keys.
             var dict = new Dictionary<string, object?>(StringComparer.Ordinal);
 
             foreach (var entry in mapping.Children)
@@ -126,17 +127,17 @@ namespace Yaml2Doc.Core.Parsing
         }
 
         /// <summary>
-        /// Converts a <see cref="YamlScalarNode"/> into a <see cref="string"/>.
+        /// Converts a <see cref="YamlScalarNode"/> into its string value.
         /// </summary>
         /// <param name="scalar">The scalar node to convert.</param>
         /// <returns>The scalar's string value, or <see langword="null"/>.</returns>
         /// <remarks>
-        /// Type coercion (e.g., booleans, numbers) is intentionally deferred; values remain stringly-typed.
+        /// Type coercion (for example, booleans or numbers) is intentionally deferred; values remain stringly-typed.
         /// </remarks>
         private static object? ConvertScalar(YamlScalarNode scalar)
         {
             // Keep it simple and stringly-typed for now.
-            // We can layer type coercion (bool/int/etc.) later if/when we want.
+            // Type coercion (bool/int/etc.) can be added later if needed.
             return scalar.Value;
         }
     }

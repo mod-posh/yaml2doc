@@ -7,9 +7,9 @@ namespace Yaml2Doc.Core.Dialects
     /// Default, catch-all YAML dialect that interprets generic pipeline YAML into the neutral <see cref="PipelineDocument"/> model.
     /// </summary>
     /// <remarks>
-    /// Accepts any YAML document (current implementation does not restrict by structure) and delegates parsing to <see cref="YamlLoader"/>.
-    /// Sets <see cref="PipelineDocument.DialectId"/> to <c>"standard"</c> during parse.
-    /// Instances are stateless and safe for concurrent use.
+    /// This dialect accepts any YAML document and delegates parsing to <see cref="YamlLoader"/>.
+    /// During parsing, <see cref="PipelineDocument.DialectId"/> is set to <c>"standard"</c>.
+    /// Instances are stateless, do not mutate inputs, and are safe for concurrent use.
     /// </remarks>
     public sealed class StandardYamlDialect : IYamlDialect
     {
@@ -41,7 +41,7 @@ namespace Yaml2Doc.Core.Dialects
         /// </summary>
         /// <param name="context">The loaded YAML document context to inspect. Must not be <see langword="null"/>.</param>
         /// <returns>
-        /// Always <see langword="true"/>, as this dialect is currently a catch-all.
+        /// Always <see langword="true"/>, as this dialect is a catch-all and does not restrict input structure.
         /// </returns>
         /// <exception cref="ArgumentNullException">
         /// Thrown when <paramref name="context"/> is <see langword="null"/>.

@@ -10,7 +10,7 @@ namespace Yaml2Doc.Core.Dialects
     /// Azure DevOps pipelines YAML dialect.
     /// </summary>
     /// <remarks>
-    /// Detection is heuristic-based and considers typical ADO pipeline structure:
+    /// Detection is heuristic-based and considers typical Azure DevOps pipeline structure:
     /// - The document root must be a mapping.
     /// - Presence of root-level keys such as <c>trigger</c>, <c>pool</c>, <c>stages</c>, <c>jobs</c>, or <c>steps</c>.
     /// Parsing delegates to <see cref="YamlLoader"/> to produce a neutral <see cref="PipelineDocument"/>.
@@ -51,7 +51,7 @@ namespace Yaml2Doc.Core.Dialects
         /// </summary>
         /// <param name="context">The loaded YAML document context to inspect. Must not be <see langword="null"/>.</param>
         /// <returns>
-        /// <see langword="true"/> if the root is a mapping and contains any known ADO keys
+        /// <see langword="true"/> if the root is a mapping and contains any known Azure DevOps keys
         /// (<c>trigger</c>, <c>pool</c>, <c>stages</c>, <c>jobs</c>, <c>steps</c>); otherwise, <see langword="false"/>.
         /// </returns>
         /// <exception cref="ArgumentNullException">Thrown when <paramref name="context"/> is <see langword="null"/>.</exception>
@@ -95,7 +95,7 @@ namespace Yaml2Doc.Core.Dialects
         {
             if (context is null) throw new ArgumentNullException(nameof(context));
 
-            // Project into the neutral PipelineDocument, keeping ADO concepts in the Root dictionary.
+            // Project into the neutral PipelineDocument, keeping Azure DevOps concepts in the Root dictionary.
             var document = _loader.Load(context);
             document.DialectId = Id;
             return document;
