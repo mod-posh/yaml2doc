@@ -209,11 +209,15 @@ namespace Yaml2Doc.Markdown
                                     stepMap.TryGetValue("uses", out var usesObj);
                                     stepMap.TryGetValue("run", out var runObj);
 
-                                    var label =
-                                        stepNameObj as string ??
-                                        usesObj as string ??
-                                        (runObj is string ? "(run step)" : null) ??
-                                        "(unnamed step)";
+                                    string label;
+                                    if (stepNameObj is string s1)
+                                        label = s1;
+                                    else if (usesObj is string s2)
+                                        label = s2;
+                                    else if (runObj is string)
+                                        label = "(run step)";
+                                    else
+                                        label = "(unnamed step)";
 
                                     sb.Append("- ")
                                       .AppendLine(label);
