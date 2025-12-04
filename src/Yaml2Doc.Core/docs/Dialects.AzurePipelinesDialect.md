@@ -25,7 +25,7 @@ Determines whether this dialect can interpret the given YAML document.
 
 **Returns**
 
-Returns `true` if the root is a mapping and contains any known ADO keys (`trigger`, `pool`, `stages`, `jobs`, `steps`); otherwise, returns `false`.
+if the root is a mapping and contains any known ADO keys (`trigger`, `pool`, `stages`, `jobs`, `steps`); otherwise,.
 
 **Exceptions**
 - [ArgumentNullException](System.ArgumentNullException.md) — Thrown when `context` is.
