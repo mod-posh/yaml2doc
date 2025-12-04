@@ -12,7 +12,7 @@ namespace Yaml2Doc.Markdown
     /// </summary>
     /// <remarks>
     /// Renders:
-    /// - H1 as the document name if present; otherwise, the title is &quot;YAML Document&quot;.
+    /// - An H1 title using the document name when present; otherwise, the title is &quot;YAML Document&quot;.
     /// - A &quot;Root Keys&quot; section listing top-level keys.
     /// For GitHub Actions (<c>gha</c>) and Azure Pipelines (<c>ado</c>) dialects, additional best-effort sections
     /// are appended while preserving the original baseline output.
@@ -20,6 +20,28 @@ namespace Yaml2Doc.Markdown
     /// </remarks>
     public sealed class BasicMarkdownRenderer : IMarkdownRenderer
     {
+        /// <summary>
+        /// Gets the render mode used by this renderer instance.
+        /// </summary>
+        public MarkdownRenderMode Mode { get; }
+
+        /// <summary>
+        /// Initializes a new <see cref="BasicMarkdownRenderer"/> using <see cref="MarkdownRenderMode.Basic"/>.
+        /// </summary>
+        public BasicMarkdownRenderer()
+            : this(MarkdownRenderMode.Basic)
+        {
+        }
+
+        /// <summary>
+        /// Initializes a new <see cref="BasicMarkdownRenderer"/> with the specified <paramref name="mode"/>.
+        /// </summary>
+        /// <param name="mode">The rendering mode to use for output.</param>
+        public BasicMarkdownRenderer(MarkdownRenderMode mode)
+        {
+            Mode = mode;
+        }
+
         /// <summary>
         /// Converts the provided <paramref name="document"/> into a basic Markdown representation.
         /// </summary>
@@ -52,8 +74,7 @@ namespace Yaml2Doc.Markdown
                 return RenderBaseline(document);
             }
 
-            // For known dialects, start from the baseline output and then append
-            // dialect-aware sections.
+            // For known dialects, start from the baseline output and then append dialect-aware sections.
             var sb = new StringBuilder();
             RenderBaselineInto(document, sb);
 
@@ -74,7 +95,7 @@ namespace Yaml2Doc.Markdown
         }
 
         /// <summary>
-        /// Baseline representation: title and &quot;Root Keys&quot; section (used for standard/unknown dialects).
+        /// Baseline representation for standard or unknown dialects: title and &quot;Root Keys&quot; section.
         /// </summary>
         /// <param name="document">The document to render.</param>
         /// <returns>Baseline Markdown without dialect-specific sections.</returns>
@@ -101,7 +122,7 @@ namespace Yaml2Doc.Markdown
                 return sb.ToString();
             }
 
-            // Use the dictionary's keys; order is whatever the caller inserted
+            // Use the dictionary's keys; order is whatever the caller inserted.
             foreach (var key in document.Root.Keys)
             {
                 sb.Append("- ")
@@ -113,10 +134,10 @@ namespace Yaml2Doc.Markdown
 
         /// <summary>
         /// Writes the baseline representation into an existing <see cref="StringBuilder"/>.
-        /// Must preserve identical textual output as <see cref="RenderBaseline"/>.
+        /// The output must be identical to <see cref="RenderBaseline"/>.
         /// </summary>
         /// <param name="document">The document to render.</param>
-        /// <param name="sb">Destination buffer.</param>
+        /// <param name="sb">The destination buffer.</param>
         private static void RenderBaselineInto(PipelineDocument document, StringBuilder sb)
         {
             // Title
@@ -146,10 +167,10 @@ namespace Yaml2Doc.Markdown
         }
 
         /// <summary>
-        /// Appends GitHub Actions-specific sections (Triggers, Jobs) to the buffer.
+        /// Appends GitHub Actions-specific sections (Triggers and Jobs) to the buffer.
         /// </summary>
         /// <param name="document">The document assumed to represent a GitHub Actions workflow.</param>
-        /// <param name="sb">Destination buffer.</param>
+        /// <param name="sb">The destination buffer.</param>
         private static void AppendGitHubActionsSections(PipelineDocument document, StringBuilder sb)
         {
             // Triggers from "on"
@@ -232,7 +253,7 @@ namespace Yaml2Doc.Markdown
         /// Renders GitHub Actions trigger configuration from the value of the <c>on</c> key.
         /// </summary>
         /// <param name="onValue">The typed value of the <c>on</c> key.</param>
-        /// <param name="sb">Destination buffer.</param>
+        /// <param name="sb">The destination buffer.</param>
         private static void RenderGitHubActionsTriggers(object? onValue, StringBuilder sb)
         {
             switch (onValue)
@@ -266,10 +287,10 @@ namespace Yaml2Doc.Markdown
         }
 
         /// <summary>
-        /// Appends Azure Pipelines-specific sections (Trigger, Stages/Jobs) to the buffer.
+        /// Appends Azure Pipelines-specific sections (Trigger and Stages/Jobs) to the buffer.
         /// </summary>
         /// <param name="document">The document assumed to represent an Azure DevOps pipeline.</param>
-        /// <param name="sb">Destination buffer.</param>
+        /// <param name="sb">The destination buffer.</param>
         private static void AppendAzurePipelinesSections(PipelineDocument document, StringBuilder sb)
         {
             // Trigger
@@ -366,7 +387,7 @@ namespace Yaml2Doc.Markdown
         /// Renders Azure Pipelines trigger configuration from the value of the <c>trigger</c> key.
         /// </summary>
         /// <param name="triggerValue">The typed value of the <c>trigger</c> key.</param>
-        /// <param name="sb">Destination buffer.</param>
+        /// <param name="sb">The destination buffer.</param>
         private static void RenderAzurePipelinesTrigger(object? triggerValue, StringBuilder sb)
         {
             switch (triggerValue)
