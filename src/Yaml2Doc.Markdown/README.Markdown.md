@@ -8,7 +8,7 @@ For v1.x, the renderer is intentionally small and predictable:
 - Falls back to `# YAML Document` if no `name` is provided.
 - Emits a `## Root Keys` section listing the top-level keys in the YAML document.
 
-Starting with **v1.1.0**, the renderer can also surface **dialect-aware sections** when the `PipelineDocument` includes richer, dialect-specific metadata (e.g., triggers, jobs, steps). For a plain “standard YAML” document, the output remains identical to v1.0.0.
+Starting with **v1.1.0**, the renderer can also surface **dialect-aware sections** when the `PipelineDocument` includes richer, dialect-specific metadata (e.g., triggers, jobs, steps). For a plain "standard YAML" document, the output remains identical to v1.0.0.
 
 Use this package if you already have a `PipelineDocument` and just want a **predictable Markdown representation**, with optional dialect-aware extras when available.
 

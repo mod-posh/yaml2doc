@@ -201,27 +201,24 @@ namespace Yaml2Doc.Markdown
                             sb.AppendLine("**Steps:**")
                               .AppendLine();
 
-                            foreach (var stepObj in stepsList)
+                            foreach (var stepMap in stepsList.OfType<IDictionary<string, object?>>())
                             {
-                                if (stepObj is IDictionary<string, object?> stepMap)
-                                {
-                                    stepMap.TryGetValue("name", out var stepNameObj);
-                                    stepMap.TryGetValue("uses", out var usesObj);
-                                    stepMap.TryGetValue("run", out var runObj);
+                                stepMap.TryGetValue("name", out var stepNameObj);
+                                stepMap.TryGetValue("uses", out var usesObj);
+                                stepMap.TryGetValue("run", out var runObj);
 
-                                    string label;
-                                    if (stepNameObj is string s1)
-                                        label = s1;
-                                    else if (usesObj is string s2)
-                                        label = s2;
-                                    else if (runObj is string)
-                                        label = "(run step)";
-                                    else
-                                        label = "(unnamed step)";
+                                string label;
+                                if (stepNameObj is string s1)
+                                    label = s1;
+                                else if (usesObj is string s2)
+                                    label = s2;
+                                else if (runObj is string)
+                                    label = "(run step)";
+                                else
+                                    label = "(unnamed step)";
 
-                                    sb.Append("- ")
-                                      .AppendLine(label);
-                                }
+                                sb.Append("- ")
+                                  .AppendLine(label);
                             }
 
                             sb.AppendLine();
@@ -347,21 +344,18 @@ namespace Yaml2Doc.Markdown
                 sb.AppendLine("## Jobs")
                   .AppendLine();
 
-                foreach (var jobObj in jobsList)
+                foreach (var jobMap in jobsList.OfType<IDictionary<string, object?>>())
                 {
-                    if (jobObj is IDictionary<string, object?> jobMap)
+                    var jobName = jobMap.TryGetValue("job", out var jobNameObj)
+                        ? jobNameObj as string
+                        : null;
+
+                    if (string.IsNullOrWhiteSpace(jobName))
                     {
-                        var jobName = jobMap.TryGetValue("job", out var jobNameObj)
-                            ? jobNameObj as string
-                            : null;
-
-                        if (string.IsNullOrWhiteSpace(jobName))
-                        {
-                            jobName = "(unnamed job)";
-                        }
-
-                        sb.AppendLine($"- {jobName}");
+                        jobName = "(unnamed job)";
                     }
+
+                    sb.AppendLine($"- {jobName}");
                 }
 
                 sb.AppendLine();

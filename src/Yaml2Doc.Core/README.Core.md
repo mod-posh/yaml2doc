@@ -4,13 +4,13 @@
 
 - A neutral in-memory model (`PipelineDocument`) for generic YAML.
 - YAML dialect implementations that interpret different kinds of pipeline YAML:
-  - `StandardYamlDialect` � treats input as plain YAML (no CI/CD semantics).
-  - `GitHubActionsDialect` � understands GitHub Actions workflows.
-  - `AzurePipelinesDialect` � understands Azure DevOps pipeline YAML.
+  - `StandardYamlDialect` – treats input as plain YAML (no CI/CD semantics).
+  - `GitHubActionsYamlDialect` – understands GitHub Actions workflows.
+  - `AzurePipelinesYamlDialect` – understands Azure DevOps pipeline YAML.
 - Loading and parsing helpers (`YamlDocumentContext`, `YamlLoader`).
 - A dialect registry (`Yaml2DocRegistry`) for selecting how YAML should be interpreted.
 
-Use this package if you want to **integrate Yaml2Doc�s core parsing and modeling** into your own tools or renderers.
+Use this package if you want to **integrate Yaml2Doc’s core parsing and modeling** into your own tools or renderers.
 
 ---
 
