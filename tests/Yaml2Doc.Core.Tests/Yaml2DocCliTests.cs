@@ -425,8 +425,23 @@ namespace Yaml2Doc.Core.Tests.Cli
             var actual = NormalizeNewLines(stdout.ToString());
             var expected = NormalizeNewLines(File.ReadAllText(goldenPath));
 
-            // Golden is the baseline; actual may contain extra dialect-aware sections
+            // Validate the baseline golden content appears at the start
             Assert.StartsWith(expected, actual);
+            
+            // Ensure the golden content is complete and followed by extra sections
+            // (not inserted in the middle). The expected content should be followed
+            // by either EOF or a blank line and then dialect-specific sections.
+            var expectedLength = expected.Length;
+            if (actual.Length > expectedLength)
+            {
+                // There's extra content beyond the golden file
+                var remainingContent = actual.Substring(expectedLength);
+                
+                // Extra content should start with blank line(s) or newline(s)
+                Assert.True(
+                    remainingContent.StartsWith("\n") || remainingContent.StartsWith("\r"),
+                    "Extra dialect-aware content should be separated from baseline by a newline");
+            }
         }
 
         private static string NormalizeNewLines(string text)
@@ -485,8 +500,23 @@ namespace Yaml2Doc.Core.Tests.Cli
             var actual = NormalizeNewLines(stdout.ToString());
             var expected = NormalizeNewLines(File.ReadAllText(goldenPath));
 
-            // Again, golden is the baseline prefix; actual includes extra sections
+            // Validate the baseline golden content appears at the start
             Assert.StartsWith(expected, actual);
+            
+            // Ensure the golden content is complete and followed by extra sections
+            // (not inserted in the middle). The expected content should be followed
+            // by either EOF or a blank line and then dialect-specific sections.
+            var expectedLength = expected.Length;
+            if (actual.Length > expectedLength)
+            {
+                // There's extra content beyond the golden file
+                var remainingContent = actual.Substring(expectedLength);
+                
+                // Extra content should start with blank line(s) or newline(s)
+                Assert.True(
+                    remainingContent.StartsWith("\n") || remainingContent.StartsWith("\r"),
+                    "Extra dialect-aware content should be separated from baseline by a newline");
+            }
         }
 
         [Fact]
