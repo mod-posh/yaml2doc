@@ -4,13 +4,13 @@
 
 - A neutral in-memory model (`PipelineDocument`) for generic YAML.
 - YAML dialect implementations that interpret different kinds of pipeline YAML:
-  - `StandardYamlDialect` – treats input as plain YAML (no CI/CD semantics).
-  - `GitHubActionsYamlDialect` – understands GitHub Actions workflows.
-  - `AzurePipelinesYamlDialect` – understands Azure DevOps pipeline YAML.
+  - `StandardYamlDialect` ï¿½ treats input as plain YAML (no CI/CD semantics).
+  - `GitHubActionsDialect` ï¿½ understands GitHub Actions workflows.
+  - `AzurePipelinesDialect` ï¿½ understands Azure DevOps pipeline YAML.
 - Loading and parsing helpers (`YamlDocumentContext`, `YamlLoader`).
 - A dialect registry (`Yaml2DocRegistry`) for selecting how YAML should be interpreted.
 
-Use this package if you want to **integrate Yaml2Doc’s core parsing and modeling** into your own tools or renderers.
+Use this package if you want to **integrate Yaml2Docï¿½s core parsing and modeling** into your own tools or renderers.
 
 ---
 
@@ -24,7 +24,7 @@ dotnet add package Yaml2Doc.Core
 
 ## Basic usage (standard YAML)
 
-The typical flow for plain “standard” YAML is:
+The typical flow for plain ï¿½standardï¿½ YAML is:
 
 1. Load a YAML document into a `YamlDocumentContext`.
 2. Use the dialect registry to resolve the Standard YAML dialect.
@@ -48,8 +48,8 @@ var loader = new YamlLoader();
 var standardDialect = new StandardYamlDialect(loader);
 
 // For v1.1.0+, you can also register other dialects:
-var ghaDialect = new GitHubActionsYamlDialect(loader);
-var adoDialect = new AzurePipelinesYamlDialect(loader);
+var ghaDialect = new GitHubActionsDialect(loader);
+var adoDialect = new AzurePipelinesDialect(loader);
 
 // Register dialect(s)
 var registry = new Yaml2DocRegistry(new[] { standardDialect, ghaDialect, adoDialect });
