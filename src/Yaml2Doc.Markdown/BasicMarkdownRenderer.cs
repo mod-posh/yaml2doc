@@ -347,21 +347,18 @@ namespace Yaml2Doc.Markdown
                 sb.AppendLine("## Jobs")
                   .AppendLine();
 
-                foreach (var jobObj in jobsList)
+                foreach (var jobMap in jobsList.OfType<IDictionary<string, object?>>())
                 {
-                    if (jobObj is IDictionary<string, object?> jobMap)
+                    var jobName = jobMap.TryGetValue("job", out var jobNameObj)
+                        ? jobNameObj as string
+                        : null;
+
+                    if (string.IsNullOrWhiteSpace(jobName))
                     {
-                        var jobName = jobMap.TryGetValue("job", out var jobNameObj)
-                            ? jobNameObj as string
-                            : null;
-
-                        if (string.IsNullOrWhiteSpace(jobName))
-                        {
-                            jobName = "(unnamed job)";
-                        }
-
-                        sb.AppendLine($"- {jobName}");
+                        jobName = "(unnamed job)";
                     }
+
+                    sb.AppendLine($"- {jobName}");
                 }
 
                 sb.AppendLine();
