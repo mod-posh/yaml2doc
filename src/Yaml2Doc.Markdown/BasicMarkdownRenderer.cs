@@ -43,19 +43,14 @@ namespace Yaml2Doc.Markdown
         }
 
         /// <summary>
-        /// Converts the provided <paramref name="document"/> into a basic Markdown representation.
+        /// Renders the provided <paramref name="document"/> to Markdown using the configured <see cref="Mode"/>.
         /// </summary>
-        /// <param name="document">
-        /// The <see cref="PipelineDocument"/> to render. Must not be <see langword="null"/>.
-        /// </param>
+        /// <param name="document">The <see cref="PipelineDocument"/> to render. Must not be <see langword="null"/>.</param>
         /// <returns>
-        /// A Markdown string containing the document title and a bullet list of root keys.
-        /// If there are no root keys, the list is replaced with <c>_(no root keys)_</c>.
-        /// For known dialects (<c>gha</c> or <c>ado</c>), additional sections are appended.
+        /// Markdown output compliant with the selected mode. In <see cref="MarkdownRenderMode.Basic"/>,
+        /// the output matches the baseline contract.
         /// </returns>
-        /// <exception cref="ArgumentNullException">
-        /// Thrown when <paramref name="document"/> is <see langword="null"/>.
-        /// </exception>
+        /// <exception cref="ArgumentNullException">Thrown when <paramref name="document"/> is <see langword="null"/>.</exception>
         public string Render(PipelineDocument document)
         {
             if (document is null)
@@ -63,6 +58,32 @@ namespace Yaml2Doc.Markdown
                 throw new ArgumentNullException(nameof(document));
             }
 
+            // Core behavior: current Basic + dialect-aware sections
+            var markdown = RenderCore(document);
+
+            if (Mode == MarkdownRenderMode.Basic)
+            {
+                // v1 contract: exactly what we do today.
+                return markdown;
+            }
+
+            // MarkdownRenderMode.Rich:
+            // Currently identical to Basic. Future versions may append richer sections.
+            return markdown;
+        }
+
+        /// <summary>
+        /// Converts the provided <paramref name="document"/> into the baseline Markdown representation,
+        /// optionally appending dialect-aware sections for known dialects.
+        /// </summary>
+        /// <param name="document">The <see cref="PipelineDocument"/> to render. Must not be <see langword="null"/>.</param>
+        /// <returns>
+        /// A Markdown string containing the title and a bullet list of root keys.
+        /// If there are no root keys, the list is replaced with <c>_(no root keys)_</c>.
+        /// For known dialects (<c>gha</c> or <c>ado</c>), additional sections are appended.
+        /// </returns>
+        public string RenderCore(PipelineDocument document)
+        {
             var dialectId = document.DialectId?.ToLowerInvariant();
 
             var isGitHubActions = string.Equals(dialectId, "gha", StringComparison.Ordinal);
