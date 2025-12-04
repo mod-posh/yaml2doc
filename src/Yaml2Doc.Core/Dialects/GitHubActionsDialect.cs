@@ -60,20 +60,31 @@ namespace Yaml2Doc.Core.Dialects
             }
 
             // Directly inspect root keys for efficiency, similar to AzurePipelinesDialect.
-            var rootKeys = mapping.Children
-                .Keys
-                .OfType<YamlScalarNode>()
-                .Select(k => k.Value)
-                .Where(v => !string.IsNullOrEmpty(v))
-                .ToList();
+            var hasOn = false;
+            var hasJobs = false;
 
-            if (rootKeys.Count == 0)
+            foreach (var key in mapping.Children.Keys.OfType<YamlScalarNode>())
             {
-                return false;
-            }
+                if (string.IsNullOrEmpty(key.Value))
+                {
+                    continue;
+                }
 
-            var hasOn = rootKeys.Any(k => string.Equals(k, "on", StringComparison.OrdinalIgnoreCase));
-            var hasJobs = rootKeys.Any(k => string.Equals(k, "jobs", StringComparison.OrdinalIgnoreCase));
+                if (string.Equals(key.Value, "on", StringComparison.OrdinalIgnoreCase))
+                {
+                    hasOn = true;
+                }
+                else if (string.Equals(key.Value, "jobs", StringComparison.OrdinalIgnoreCase))
+                {
+                    hasJobs = true;
+                }
+
+                // Early exit if both keys are found
+                if (hasOn && hasJobs)
+                {
+                    return true;
+                }
+            }
 
             return hasOn && hasJobs;
         }
