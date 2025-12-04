@@ -307,9 +307,9 @@ namespace Yaml2Doc.Core.Tests.Cli
 
             var args = new[]
             {
-            "--dialect", "standard",
-            inputPath
-        };
+                "--dialect", "standard",
+                inputPath
+            };
 
             try
             {
@@ -347,9 +347,9 @@ namespace Yaml2Doc.Core.Tests.Cli
 
             var args = new[]
             {
-            "--dialect", "nonexistent",
-            inputPath
-        };
+                "--dialect", "nonexistent",
+                inputPath
+            };
 
             try
             {
@@ -459,9 +459,9 @@ namespace Yaml2Doc.Core.Tests.Cli
 
             var args = new[]
             {
-        "--dialect", "ado",
-        inputPath
-    };
+                "--dialect", "ado",
+                inputPath
+            };
 
             // Act
             var exitCode = Yaml2DocCli.Run(args, stdout, stderr);
@@ -487,9 +487,9 @@ namespace Yaml2Doc.Core.Tests.Cli
 
             var args = new[]
             {
-        "--dialect", "ado",
-        inputPath
-    };
+                "--dialect", "ado",
+                inputPath
+            };
 
             // Act
             var exitCode = Yaml2DocCli.Run(args, stdout, stderr);
@@ -534,9 +534,9 @@ namespace Yaml2Doc.Core.Tests.Cli
 
             var args = new[]
             {
-        "--dialect", "standard",
-        inputPath
-    };
+                "--dialect", "standard",
+                inputPath
+            };
 
             // Act
             var exitCode = Yaml2DocCli.Run(
