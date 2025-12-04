@@ -130,12 +130,20 @@ jobs:
           fix: true
 
       - name: Commit Documentation Changes
+        if: success()
         run: |
           git config --local user.name "github-actions[bot]"
           git config --local user.email "github-actions[bot]@users.noreply.github.com"
-          git fetch origin
-          git rebase origin/${{ github.ref_name }} || git pull --rebase
+
+          # Check if there are any changes under Docs/
+          if git diff --quiet -- Docs/; then
+            echo "No documentation changes to commit."
+            exit 0
+          fi
+
           git add Docs/
+
           git commit -m "Update documentation for release v${{ env.VERSION }}"
-          git push origin ${{ github.ref_name }}
-        if: success()
+          # Use HEAD in case we're not explicitly on the branch
+          git push origin HEAD:${{ github.ref_name }}
+
