@@ -127,7 +127,7 @@ jobs:
           }
 
       - name: Run markdownlint-cli2-action
-        uses: DavidAnson/markdownlint-cli2-action@v21
+        uses: DavidAnson/markdownlint-cli2-action@v22
         with:
           globs: 'Docs/**/*.md'
           fix: true
