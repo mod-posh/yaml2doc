@@ -24,7 +24,7 @@
 
   <ItemGroup>
     <PackageReference Include="Xml2Doc.MSBuild"
-                      Version="1.4.0-preview.80-g111a6ac">
+                      Version="1.4.0-preview.86-g10fb1f6">
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
   </ItemGroup>
