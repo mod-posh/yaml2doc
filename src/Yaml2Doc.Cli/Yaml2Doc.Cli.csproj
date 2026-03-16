@@ -24,7 +24,7 @@
           DependsOnTargets="Xml2Doc_ComputeFingerprint" />
 
   <ItemGroup>
-    <PackageReference Include="Xml2Doc.MSBuild" Version="1.4.0-preview.80-g111a6ac">
+    <PackageReference Include="Xml2Doc.MSBuild" Version="1.4.0-preview.98-g5ab3c0c">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
