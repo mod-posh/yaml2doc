@@ -1,0 +1,14 @@
+name: Yaml2Doc filesystem
+version: 0.0.1
+schema: v1
+mcpServers:
+  - name: Workspace filesystem
+    type: stdio
+    command: cmd
+    args:
+      - /d
+      - /c
+      - mcp-server-filesystem
+      - .
+    cwd: .
+    connectionTimeout: 30000

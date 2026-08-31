@@ -1,0 +1,30 @@
+# Version control and IDE state
+.git/
+.vscode/
+.vs/
+.idea/
+
+# Build, package, and test output
+**/bin/
+**/obj/
+**/[Dd]ebug/
+**/[Rr]elease/
+artifacts/
+publish/
+**/packages/
+**/TestResults/
+*.nupkg
+*.snupkg
+*.trx
+coverage*.json
+coverage*.xml
+coverage*.info
+
+# Generated documentation
+Docs/
+src/*/docs/
+
+# Logs and temporary files
+**/logs/
+*.log
+*.tmp

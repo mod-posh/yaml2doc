@@ -1,0 +1,14 @@
+name: Yaml2Doc GitHub
+version: 0.0.1
+schema: v1
+mcpServers:
+  - name: GitHub
+    type: stdio
+    # The active gh token must include repo and read:org scopes.
+    command: cmd
+    args:
+      - /d
+      - /c
+      - .continue\mcpServers\github.cmd
+    cwd: .
+    connectionTimeout: 30000

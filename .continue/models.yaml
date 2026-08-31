@@ -1,0 +1,47 @@
+name: Yaml2Doc local Ollama models
+version: 0.0.1
+schema: v1
+models:
+  - name: Llama 3.2 Fast
+    provider: ollama
+    model: llama3.2:latest
+    roles:
+      - edit
+      - apply
+
+  - name: Llama 3.1 General
+    provider: ollama
+    model: llama3.1:8b
+    roles:
+      - edit
+      - apply
+
+  - name: Qwen 3 Fast Agent
+    provider: openai
+    model: qwen3:8b
+    apiBase: http://localhost:11434/v1
+    capabilities:
+      - tool_use
+    roles:
+      - chat
+      - edit
+      - apply
+    defaultCompletionOptions:
+      contextLength: 32768
+      temperature: 0.2
+      maxTokens: 4096
+
+  - name: Qwen 3 Coder 30B
+    provider: openai
+    model: qwen3-coder:30b
+    apiBase: http://localhost:11434/v1
+    capabilities:
+      - tool_use
+    roles:
+      - chat
+      - edit
+      - apply
+    defaultCompletionOptions:
+      contextLength: 32768
+      temperature: 0.2
+      maxTokens: 4096
